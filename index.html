@@ -44,7 +44,12 @@
   .wrap{max-width:960px;margin:0 auto;padding:28px 20px 90px;}
 
   header.top{margin-bottom:22px;}
-  header.top .title-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+  header.top .title-row{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+  .gear-btn{
+    background:var(--card);border:none;width:40px;height:40px;border-radius:12px;font-size:17px;
+    cursor:pointer;box-shadow:var(--shadow);flex-shrink:0;
+  }
+  .gear-btn:hover{background:var(--teal-soft);}
   header.top h1{
     font-family:'Baloo 2',sans-serif;font-weight:700;font-size:32px;margin:0;color:var(--ink);
   }
@@ -63,7 +68,8 @@
     border:none;background:transparent;font-family:'Baloo 2',sans-serif;font-weight:600;font-size:16px;
     color:var(--ink);cursor:pointer;text-align:center;-webkit-appearance:none;flex:1;min-width:140px;
   }
-  .add-month-form{display:flex;align-items:center;gap:6px;margin-top:10px;}
+  .add-month-form{display:none;align-items:center;gap:6px;margin-top:10px;}
+  .add-month-form.show{display:flex;}
   .add-month-form input[type=month]{
     border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-family:'Inter',sans-serif;font-size:13px;
   }
@@ -157,9 +163,9 @@
 
   .empty{padding:22px 18px;color:var(--ink-soft);font-size:13px;font-style:italic;text-align:center;}
   .save-note{
-    position:fixed;bottom:18px;right:18px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;
-    color:#fff;background:var(--teal);padding:8px 14px;border-radius:20px;opacity:0;transition:opacity .3s;
-    pointer-events:none;box-shadow:var(--shadow);
+    position:fixed;bottom:18px;right:18px;left:18px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;
+    color:#fff;background:var(--teal);padding:8px 14px;border-radius:14px;opacity:0;transition:opacity .3s;
+    pointer-events:none;box-shadow:var(--shadow);text-align:center;max-width:420px;margin:0 auto;
   }
   .save-note.show{opacity:1;}
 
@@ -224,6 +230,7 @@
     padding:22px;box-shadow:0 10px 30px rgba(0,0,0,0.15);
   }
   .modal h2{font-family:'Baloo 2',sans-serif;font-size:19px;margin:0 0 4px;}
+  .modal-section-title{font-family:'Baloo 2',sans-serif;font-size:14px;color:var(--teal-dark);margin:18px 0 0;padding-top:14px;border-top:1px solid var(--line);}
   .modal .row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-top:1px solid var(--line);}
   .modal .row:first-of-type{border-top:none;}
   .modal .row .label{font-size:14px;font-weight:600;}
@@ -253,26 +260,18 @@
         <h1>👛 Ledger</h1>
         <div class="sub">a friendly place to watch your money move</div>
       </div>
+      <button id="settingsBtn" class="gear-btn" title="Settings">⚙️</button>
     </div>
 
     <div class="month-switcher">
       <button class="nav" id="prevMonth">‹</button>
       <select id="monthSelect"></select>
       <button class="nav" id="nextMonth">›</button>
+      <button class="nav" id="toggleAddMonth" title="Add a month">+</button>
     </div>
-    <div class="add-month-form">
+    <div class="add-month-form" id="addMonthForm">
       <input type="month" id="newMonthInput">
-      <button id="createMonthBtn">+ Add month</button>
-    </div>
-
-    <div class="toolbar">
-      <button id="reportBtn">🖨️ Monthly report (PDF)</button>
-      <button id="csvBtn">📄 Export CSV</button>
-      <button id="exportBtn">⬇️ Backup (JSON)</button>
-      <label>⬆️ Restore backup
-        <input type="file" id="importInput" accept="application/json" style="display:none;">
-      </label>
-      <button id="settingsBtn">🔒 Security</button>
+      <button id="createMonthBtn">Create</button>
     </div>
   </header>
 
@@ -365,7 +364,29 @@
 <div class="modal-backdrop" id="settingsBackdrop">
   <div class="modal">
     <button class="close-x" id="closeSettings">✕</button>
-    <h2>🔒 Security</h2>
+    <h2>⚙️ Settings</h2>
+
+    <h3 class="modal-section-title">💾 Data</h3>
+    <div class="row">
+      <div><div class="label">Monthly report</div><div class="desc">A clean, printable summary of the selected month</div></div>
+      <button class="action secondary" id="reportBtn">Print / Save PDF</button>
+    </div>
+    <div class="row">
+      <div><div class="label">Export as CSV</div><div class="desc">All months &amp; assets, opens in Excel/Numbers/Sheets</div></div>
+      <button class="action secondary" id="csvBtn">Export</button>
+    </div>
+    <div class="row">
+      <div><div class="label">Full backup</div><div class="desc">A complete .json copy of everything in the app</div></div>
+      <button class="action secondary" id="exportBtn">Save backup</button>
+    </div>
+    <div class="row">
+      <div><div class="label">Restore from backup</div><div class="desc">Replaces current data with a saved .json backup</div></div>
+      <label class="action secondary" style="cursor:pointer;">Choose file
+        <input type="file" id="importInput" accept="application/json" style="display:none;">
+      </label>
+    </div>
+
+    <h3 class="modal-section-title">🔒 Security</h3>
     <div class="row">
       <div><div class="label">Require passcode to open</div><div class="desc">Encrypts your data with a passcode on this device</div></div>
       <label class="switch"><input type="checkbox" id="lockToggle"><span class="slider"></span></label>
@@ -386,7 +407,7 @@
       <div><div class="label">Change passcode</div></div>
       <button class="action secondary" id="changePinBtn">Change</button>
     </div>
-    <div class="warn-note">If you forget your passcode, this data can't be recovered on this device — it's genuinely encrypted, not just hidden. Keep a JSON backup (Backup button) somewhere safe as your recovery copy.</div>
+    <div class="warn-note">If you forget your passcode, this data can't be recovered on this device — it's genuinely encrypted, not just hidden. Keep a JSON backup somewhere safe as your recovery copy.</div>
   </div>
 </div>
 
@@ -515,6 +536,34 @@ function loadLockConfig(){
 function saveLockConfig(){ localStorage.setItem(LOCK_CONFIG_KEY, JSON.stringify(lockConfig)); }
 
 function fmt(n){ n = Number(n)||0; return n.toLocaleString(undefined,{maximumFractionDigits:2}); }
+
+/* ---------- saving files: standalone home-screen apps have no browser chrome,
+   so plain <a download> often fails silently. Web Share (Save to Files) is the reliable path. ---------- */
+async function saveFile(filename, mime, content){
+  try{
+    const file = new File([content], filename, {type: mime});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file], title:filename});
+      return true;
+    }
+  }catch(err){
+    if(err && err.name === 'AbortError') return false; // user cancelled the share sheet, not an error
+  }
+  try{
+    const blob = new Blob([content], {type:mime});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+    return true;
+  }catch(err){
+    // last resort: open it in a new tab so the person can long-press → Save to Files
+    const url = URL.createObjectURL(new Blob([content], {type:mime}));
+    window.open(url, '_blank');
+    return true;
+  }
+}
 function sum(arr){ return arr.reduce((a,r)=>a + (Number(r.amount)||0), 0); }
 function currentMonth(){ return data.months[data.currentMonthKey]; }
 
@@ -524,6 +573,9 @@ function renderMonthSwitcher(){
   sel.innerHTML = keys.map(k => `<option value="${k}" ${k===data.currentMonthKey?'selected':''}>${monthLabel(k)}</option>`).join('');
   document.getElementById('newMonthInput').value = data.currentMonthKey;
 }
+document.getElementById('toggleAddMonth').addEventListener('click', () => {
+  document.getElementById('addMonthForm').classList.toggle('show');
+});
 document.getElementById('monthSelect').addEventListener('change', (e) => {
   data.currentMonthKey = e.target.value; scheduleSave(); render();
 });
@@ -554,6 +606,7 @@ document.getElementById('createMonthBtn').addEventListener('click', () => {
   }
   data.currentMonthKey = val;
   scheduleSave(); render();
+  document.getElementById('addMonthForm').classList.remove('show');
 });
 
 function renderSimpleTable(key, tbodyId){
@@ -794,12 +847,39 @@ document.addEventListener('click', (e) => {
   }
 });
 
-document.getElementById('exportBtn').addEventListener('click', () => {
-  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+/* ---------- reliable file saving on iOS standalone PWA ---------- */
+// A plain <a download> click silently fails in many iOS home-screen-app contexts.
+// The Web Share API (which opens the native share sheet, with "Save to Files") is
+// the reliable path there. We try Share first, and only fall back to a direct
+// download link on platforms where that isn't supported (mostly desktop browsers).
+async function saveFile(blob, filename, mimeType){
+  const file = new File([blob], filename, {type:mimeType});
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+    try{
+      await navigator.share({files:[file], title:filename});
+      exportStatus(`Shared "${filename}" — choose "Save to Files" to keep a copy.`);
+      return;
+    }catch(err){
+      if(err.name === 'AbortError') return; // user cancelled the share sheet, no need for a fallback
+      // otherwise fall through to direct download below
+    }
+  }
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'ledger-backup-' + new Date().toISOString().slice(0,10) + '.json'; a.click();
+  a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
   URL.revokeObjectURL(url);
+  exportStatus(`Downloaded "${filename}".`);
+}
+function exportStatus(msg){
+  const el = document.getElementById('saveNote');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(()=>{ el.classList.remove('show'); el.textContent = 'saved'; }, 2600);
+}
+
+document.getElementById('exportBtn').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  saveFile(blob, 'ledger-backup-' + new Date().toISOString().slice(0,10) + '.json', 'application/json');
 });
 document.getElementById('importInput').addEventListener('change', (e) => {
   const file = e.target.files[0]; if(!file) return;
@@ -817,6 +897,8 @@ document.getElementById('importInput').addEventListener('change', (e) => {
         alert('This file is not a recognized Ledger backup.'); return;
       }
       scheduleSave(); render();
+      document.getElementById('settingsBackdrop').classList.remove('show');
+      exportStatus('Backup restored.');
     }catch(err){ alert('That file could not be read as a Ledger backup.'); }
   };
   reader.readAsText(file);
@@ -834,10 +916,7 @@ document.getElementById('csvBtn').addEventListener('click', () => {
   data.assets.forEach(r => rows.push([r.label, r.cur, r.amount]));
   const csv = rows.map(r => r.map(v => `"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob = new Blob([csv], {type:'text/csv'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'ledger-export-' + new Date().toISOString().slice(0,10) + '.csv'; a.click();
-  URL.revokeObjectURL(url);
+  saveFile(blob, 'ledger-export-' + new Date().toISOString().slice(0,10) + '.csv', 'text/csv');
 });
 
 document.getElementById('reportBtn').addEventListener('click', () => {
