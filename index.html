@@ -182,6 +182,67 @@
     td.amount input{width:74px;}
     .stat-grid{grid-template-columns:repeat(2,1fr);}
   }
+
+  /* ---- lock screen ---- */
+  #lockScreen{
+    position:fixed;inset:0;background:var(--bg);z-index:1000;
+    display:none;flex-direction:column;align-items:center;justify-content:center;
+    padding:24px;text-align:center;
+  }
+  #lockScreen.show{display:flex;}
+  #lockScreen .lock-emoji{font-size:44px;margin-bottom:6px;}
+  #lockScreen h2{font-family:'Baloo 2',sans-serif;font-size:22px;margin:0 0 4px;}
+  #lockScreen p.hint{color:var(--ink-soft);font-size:13.5px;margin:0 0 22px;max-width:280px;}
+  .pin-dots{display:flex;gap:12px;margin-bottom:20px;}
+  .pin-dots .dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--teal);background:transparent;transition:background .15s;}
+  .pin-dots .dot.filled{background:var(--teal);}
+  #pinInput{
+    position:absolute;opacity:0;pointer-events:none;
+  }
+  .pin-pad{display:grid;grid-template-columns:repeat(3,64px);gap:12px;margin-bottom:16px;}
+  .pin-pad button{
+    width:64px;height:64px;border-radius:50%;border:none;background:var(--card);box-shadow:var(--shadow);
+    font-family:'Baloo 2',sans-serif;font-size:22px;font-weight:600;color:var(--ink);cursor:pointer;
+  }
+  .pin-pad button:active{background:var(--teal-soft);}
+  .pin-pad button.wide{font-size:16px;color:var(--ink-soft);}
+  #lockError{color:#C0432E;font-size:13px;font-weight:600;min-height:18px;margin-bottom:8px;}
+  #faceIdBtn{
+    background:var(--teal);color:#fff;border:none;border-radius:20px;padding:10px 20px;font-size:13.5px;
+    font-weight:600;cursor:pointer;margin-top:6px;display:none;
+  }
+  #faceIdBtn.show{display:inline-block;}
+
+  /* ---- settings modal ---- */
+  .modal-backdrop{
+    position:fixed;inset:0;background:rgba(31,42,36,0.45);z-index:900;display:none;
+    align-items:center;justify-content:center;padding:20px;
+  }
+  .modal-backdrop.show{display:flex;}
+  .modal{
+    background:var(--card);border-radius:18px;max-width:420px;width:100%;max-height:85vh;overflow-y:auto;
+    padding:22px;box-shadow:0 10px 30px rgba(0,0,0,0.15);
+  }
+  .modal h2{font-family:'Baloo 2',sans-serif;font-size:19px;margin:0 0 4px;}
+  .modal .row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-top:1px solid var(--line);}
+  .modal .row:first-of-type{border-top:none;}
+  .modal .row .label{font-size:14px;font-weight:600;}
+  .modal .row .desc{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+  .modal .switch{position:relative;width:44px;height:26px;flex-shrink:0;}
+  .modal .switch input{opacity:0;width:0;height:0;}
+  .modal .slider{position:absolute;inset:0;background:#DDD5BE;border-radius:20px;cursor:pointer;transition:.2s;}
+  .modal .slider:before{content:"";position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;}
+  .modal input:checked + .slider{background:var(--teal);}
+  .modal input:checked + .slider:before{transform:translateX(18px);}
+  .modal select.small{border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-family:'Inter',sans-serif;font-size:13px;}
+  .modal button.action{
+    background:var(--teal);color:#fff;border:none;border-radius:10px;padding:9px 14px;font-size:13px;
+    font-weight:600;cursor:pointer;
+  }
+  .modal button.action.secondary{background:var(--teal-soft);color:var(--teal-dark);}
+  .modal button.action.danger{background:var(--coral-soft);color:#C0432E;}
+  .modal .warn-note{font-size:11.5px;color:var(--ink-soft);background:#FBF6E8;border-radius:10px;padding:10px 12px;margin-top:14px;line-height:1.5;}
+  .modal .close-x{position:absolute;top:16px;right:18px;background:none;border:none;font-size:18px;color:var(--ink-soft);cursor:pointer;}
 </style>
 </head>
 <body>
@@ -211,6 +272,7 @@
       <label>⬆️ Restore backup
         <input type="file" id="importInput" accept="application/json" style="display:none;">
       </label>
+      <button id="settingsBtn">🔒 Security</button>
     </div>
   </header>
 
@@ -288,6 +350,46 @@
 <div class="save-note" id="saveNote">saved</div>
 <div id="printReport"></div>
 
+<!-- LOCK SCREEN -->
+<div id="lockScreen">
+  <div class="lock-emoji">👛</div>
+  <h2 id="lockTitle">Enter your passcode</h2>
+  <p class="hint" id="lockHint">Ledger data is encrypted with this passcode on this device.</p>
+  <div id="lockError"></div>
+  <div class="pin-dots" id="pinDots"></div>
+  <div class="pin-pad" id="pinPad"></div>
+  <button id="faceIdBtn">🙂 Use Face ID / Touch ID</button>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-backdrop" id="settingsBackdrop">
+  <div class="modal">
+    <button class="close-x" id="closeSettings">✕</button>
+    <h2>🔒 Security</h2>
+    <div class="row">
+      <div><div class="label">Require passcode to open</div><div class="desc">Encrypts your data with a passcode on this device</div></div>
+      <label class="switch"><input type="checkbox" id="lockToggle"><span class="slider"></span></label>
+    </div>
+    <div class="row" id="faceIdRow" style="display:none;">
+      <div><div class="label">Quick unlock with Face ID / Touch ID</div><div class="desc">Skip re-typing your passcode while the app stays open on this device</div></div>
+      <label class="switch"><input type="checkbox" id="faceIdToggle"><span class="slider"></span></label>
+    </div>
+    <div class="row" id="autoLockRow" style="display:none;">
+      <div><div class="label">Auto-lock</div><div class="desc">Lock when the app is backgrounded</div></div>
+      <select class="small" id="autoLockSelect">
+        <option value="0">Immediately</option>
+        <option value="1">After 1 minute</option>
+        <option value="5">After 5 minutes</option>
+      </select>
+    </div>
+    <div class="row" id="changePinRow" style="display:none;">
+      <div><div class="label">Change passcode</div></div>
+      <button class="action secondary" id="changePinBtn">Change</button>
+    </div>
+    <div class="warn-note">If you forget your passcode, this data can't be recovered on this device — it's genuinely encrypted, not just hidden. Keep a JSON backup (Backup button) somewhere safe as your recovery copy.</div>
+  </div>
+</div>
+
 <script>
 const CUR_SYMBOLS = {N:'₦', '$':'$', '£':'£', '€':'€'};
 const STORAGE_KEY = 'ledger-data-v2';
@@ -319,6 +421,15 @@ let data = null;
 let saveTimer = null;
 let doughnutChart = null, trendChart = null, netWorthChart = null;
 
+const LOCK_CONFIG_KEY = 'ledger-lock-config';
+const VAULT_KEY = 'ledger-vault-v1';
+let lockConfig = null;       // {enabled, salt, faceIdEnabled, credentialId, autoLockMinutes}
+let sessionKey = null;       // in-memory CryptoKey, cleared on full reload
+let pinBuffer = '';
+let pinMode = 'unlock';      // 'unlock' | 'setup' | 'confirm' | 'change-old' | 'change-new' | 'change-confirm'
+let pendingNewPin = '';
+let autoLockTimer = null;
+
 function uid(){ return 'r' + Math.random().toString(36).slice(2,9); }
 function ensureIds(arr){ arr.forEach(r => { if(!r.id) r.id = uid(); }); }
 function monthKeyNow(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
@@ -328,44 +439,81 @@ function monthLabel(key){
 }
 function sortedMonthKeys(){ return Object.keys(data.months).sort(); }
 
-function loadData(){
-  let raw = localStorage.getItem(STORAGE_KEY);
-  if(raw){
-    data = JSON.parse(raw);
+function freshData(){
+  const oldRaw = localStorage.getItem(OLD_STORAGE_KEY);
+  const key = monthKeyNow();
+  let d;
+  if(oldRaw){
+    const old = JSON.parse(oldRaw);
+    d = { months: { [key]: { income: old.income||[], expenses: old.expenses||[], savings: old.savings||[] } },
+      currentMonthKey: key, assets: old.assets || DEFAULT_ASSETS(), assetSnapshots: [] };
   } else {
-    const oldRaw = localStorage.getItem(OLD_STORAGE_KEY);
-    const key = monthKeyNow();
-    if(oldRaw){
-      const old = JSON.parse(oldRaw);
-      data = {
-        months: { [key]: { income: old.income||[], expenses: old.expenses||[], savings: old.savings||[] } },
-        currentMonthKey: key,
-        assets: old.assets || DEFAULT_ASSETS(),
-        assetSnapshots: []
-      };
-    } else {
-      data = {
-        months: { [key]: DEFAULT_MONTH() },
-        currentMonthKey: key,
-        assets: DEFAULT_ASSETS(),
-        assetSnapshots: []
-      };
-    }
+    d = { months: { [key]: DEFAULT_MONTH() }, currentMonthKey: key, assets: DEFAULT_ASSETS(), assetSnapshots: [] };
   }
-  if(!data.assetSnapshots) data.assetSnapshots = [];
-  Object.values(data.months).forEach(m => { ['income','expenses','savings'].forEach(k => ensureIds(m[k])); });
-  ensureIds(data.assets);
+  return d;
+}
+function normalizeData(d){
+  if(!d.assetSnapshots) d.assetSnapshots = [];
+  Object.values(d.months).forEach(m => { ['income','expenses','savings'].forEach(k => ensureIds(m[k])); });
+  ensureIds(d.assets);
+  return d;
+}
+
+function loadPlainData(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  data = raw ? normalizeData(JSON.parse(raw)) : normalizeData(freshData());
 }
 
 function scheduleSave(){
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); flashSaved(); }, 400);
+  saveTimer = setTimeout(async () => {
+    if(lockConfig.enabled && sessionKey){
+      const { iv, ct } = await encryptJSON(sessionKey, data);
+      localStorage.setItem(VAULT_KEY, JSON.stringify({ iv, ct }));
+      localStorage.removeItem(STORAGE_KEY);
+    } else if(!lockConfig.enabled){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+    flashSaved();
+  }, 400);
 }
 function flashSaved(){
   const el = document.getElementById('saveNote');
   el.classList.add('show');
   setTimeout(()=> el.classList.remove('show'), 900);
 }
+/* ---------- crypto: PIN-derived AES-GCM encryption of the data blob ---------- */
+function b64(buf){ return btoa(String.fromCharCode(...new Uint8Array(buf))); }
+function unb64(str){ return Uint8Array.from(atob(str), c => c.charCodeAt(0)); }
+
+async function deriveKey(pin, saltB64){
+  const salt = unb64(saltB64);
+  const enc = new TextEncoder().encode(pin);
+  const baseKey = await crypto.subtle.importKey('raw', enc, 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    { name:'PBKDF2', salt, iterations:150000, hash:'SHA-256' },
+    baseKey, { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']
+  );
+}
+async function encryptJSON(key, obj){
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const enc = new TextEncoder().encode(JSON.stringify(obj));
+  const ct = await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, enc);
+  return { iv: b64(iv), ct: b64(ct) };
+}
+async function decryptJSON(key, ivB64, ctB64){
+  const iv = unb64(ivB64);
+  const ct = unb64(ctB64);
+  const pt = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, ct);
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+
+function loadLockConfig(){
+  const raw = localStorage.getItem(LOCK_CONFIG_KEY);
+  lockConfig = raw ? JSON.parse(raw) : { enabled:false, salt:null, faceIdEnabled:false, credentialId:null, autoLockMinutes:0 };
+}
+function saveLockConfig(){ localStorage.setItem(LOCK_CONFIG_KEY, JSON.stringify(lockConfig)); }
+
 function fmt(n){ n = Number(n)||0; return n.toLocaleString(undefined,{maximumFractionDigits:2}); }
 function sum(arr){ return arr.reduce((a,r)=>a + (Number(r.amount)||0), 0); }
 function currentMonth(){ return data.months[data.currentMonthKey]; }
@@ -711,11 +859,252 @@ document.getElementById('reportBtn').addEventListener('click', () => {
   window.print();
 });
 
-loadData();
-render();
+/* ---------- PIN pad UI ---------- */
+function renderPinPad(){
+  const pad = document.getElementById('pinPad');
+  const keys = ['1','2','3','4','5','6','7','8','9','','0','⌫'];
+  pad.innerHTML = keys.map(k => {
+    if(k === '') return '<div></div>';
+    if(k === '⌫') return `<button class="wide" data-pinkey="del">⌫</button>`;
+    return `<button data-pinkey="${k}">${k}</button>`;
+  }).join('');
+}
+function renderPinDots(){
+  const dots = document.getElementById('pinDots');
+  const displayLen = Math.max(4, pinBuffer.length);
+  dots.innerHTML = Array.from({length: displayLen}).map((_,i) =>
+    `<span class="dot ${i < pinBuffer.length ? 'filled':''}"></span>`
+  ).join('');
+}
+let pinSubmitTimer = null;
+function handlePinKey(key){
+  if(key === 'del'){ pinBuffer = pinBuffer.slice(0,-1); }
+  else if(pinBuffer.length < 8){ pinBuffer += key; }
+  renderPinDots();
+  document.getElementById('lockError').textContent = '';
+  clearTimeout(pinSubmitTimer);
+  if(pinBuffer.length >= 4){ pinSubmitTimer = setTimeout(submitPin, 350); }
+}
+document.getElementById('pinPad').addEventListener('click', (e) => {
+  const key = e.target.closest('[data-pinkey]')?.dataset.pinkey;
+  if(key) handlePinKey(key);
+});
+document.addEventListener('keydown', (e) => {
+  if(!document.getElementById('lockScreen').classList.contains('show')) return;
+  if(e.key >= '0' && e.key <= '9'){ handlePinKey(e.key); }
+  if(e.key === 'Backspace'){ handlePinKey('del'); }
+  if(e.key === 'Enter'){ clearTimeout(pinSubmitTimer); submitPin(); }
+});
+
+async function submitPin(){
+  const pin = pinBuffer;
+  if(pin.length < 4) return;
+  const errEl = document.getElementById('lockError');
+  if(pinMode === 'unlock'){
+    try{
+      const key = await deriveKey(pin, lockConfig.salt);
+      const vaultRaw = localStorage.getItem(VAULT_KEY);
+      const vault = JSON.parse(vaultRaw);
+      const decrypted = await decryptJSON(key, vault.iv, vault.ct);
+      sessionKey = key;
+      data = normalizeData(decrypted);
+      pinBuffer = ''; renderPinDots();
+      hideLockScreen();
+      render();
+    }catch(err){
+      errEl.textContent = 'Incorrect passcode — try again';
+      pinBuffer = ''; renderPinDots();
+    }
+  } else if(pinMode === 'setup'){
+    pendingNewPin = pin;
+    pinMode = 'confirm';
+    pinBuffer = ''; renderPinDots();
+    document.getElementById('lockTitle').textContent = 'Confirm your passcode';
+  } else if(pinMode === 'confirm'){
+    if(pin !== pendingNewPin){
+      errEl.textContent = "Passcodes didn't match — start over";
+      pinMode = 'setup'; pendingNewPin = '';
+      pinBuffer = ''; renderPinDots();
+      document.getElementById('lockTitle').textContent = 'Set a passcode';
+      return;
+    }
+    const salt = b64(crypto.getRandomValues(new Uint8Array(16)));
+    const key = await deriveKey(pin, salt);
+    lockConfig.enabled = true; lockConfig.salt = salt;
+    saveLockConfig();
+    sessionKey = key;
+    const { iv, ct } = await encryptJSON(key, data);
+    localStorage.setItem(VAULT_KEY, JSON.stringify({ iv, ct }));
+    localStorage.removeItem(STORAGE_KEY);
+    pinBuffer = '';
+    hideLockScreen();
+    syncSettingsUI();
+    alert('Passcode set. Your data is now encrypted on this device.');
+  } else if(pinMode === 'change-old'){
+    try{
+      const key = await deriveKey(pin, lockConfig.salt);
+      await decryptJSON(key, JSON.parse(localStorage.getItem(VAULT_KEY)).iv, JSON.parse(localStorage.getItem(VAULT_KEY)).ct);
+      sessionKey = key;
+      pinMode = 'change-new';
+      pinBuffer = ''; renderPinDots();
+      document.getElementById('lockTitle').textContent = 'Enter a new passcode';
+    }catch(err){
+      errEl.textContent = 'Incorrect passcode';
+      pinBuffer = ''; renderPinDots();
+    }
+  } else if(pinMode === 'change-new'){
+    pendingNewPin = pin;
+    pinMode = 'change-confirm';
+    pinBuffer = ''; renderPinDots();
+    document.getElementById('lockTitle').textContent = 'Confirm new passcode';
+  } else if(pinMode === 'change-confirm'){
+    if(pin !== pendingNewPin){
+      errEl.textContent = "Passcodes didn't match — start over";
+      pinMode = 'change-new'; pendingNewPin = '';
+      pinBuffer = ''; renderPinDots();
+      document.getElementById('lockTitle').textContent = 'Enter a new passcode';
+      return;
+    }
+    const salt = b64(crypto.getRandomValues(new Uint8Array(16)));
+    const key = await deriveKey(pin, salt);
+    lockConfig.salt = salt; saveLockConfig();
+    sessionKey = key;
+    const { iv, ct } = await encryptJSON(key, data);
+    localStorage.setItem(VAULT_KEY, JSON.stringify({ iv, ct }));
+    pinBuffer = '';
+    hideLockScreen();
+    alert('Passcode changed.');
+  }
+}
+
+function showLockScreen(mode){
+  pinMode = mode; pinBuffer = ''; pendingNewPin = '';
+  document.getElementById('lockError').textContent = '';
+  renderPinDots();
+  const titleMap = { unlock:'Enter your passcode', setup:'Set a passcode', 'change-old':'Enter current passcode' };
+  document.getElementById('lockTitle').textContent = titleMap[mode] || 'Enter your passcode';
+  document.getElementById('lockHint').textContent = mode==='unlock'
+    ? 'Ledger data is encrypted with this passcode on this device.'
+    : 'Choose 4–8 digits. Write it down somewhere safe.';
+  document.getElementById('lockScreen').classList.add('show');
+  document.getElementById('faceIdBtn').classList.toggle('show', mode==='unlock' && lockConfig.faceIdEnabled && !!lockConfig.credentialId && sessionKey !== null);
+}
+function hideLockScreen(){
+  document.getElementById('lockScreen').classList.remove('show');
+}
+
+/* ---------- Face ID / Touch ID (WebAuthn) ---------- */
+async function platformAuthAvailable(){
+  return !!(window.PublicKeyCredential && await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().catch(()=>false));
+}
+async function enrollFaceId(){
+  try{
+    const cred = await navigator.credentials.create({ publicKey:{
+      challenge: crypto.getRandomValues(new Uint8Array(32)),
+      rp:{ name:'Ledger' },
+      user:{ id: crypto.getRandomValues(new Uint8Array(16)), name:'ledger-user', displayName:'Ledger' },
+      pubKeyCredParams:[{type:'public-key', alg:-7}],
+      authenticatorSelection:{ authenticatorAttachment:'platform', userVerification:'required' },
+      timeout:60000
+    }});
+    lockConfig.credentialId = b64(cred.rawId);
+    lockConfig.faceIdEnabled = true;
+    saveLockConfig();
+    return true;
+  }catch(err){ return false; }
+}
+async function quickUnlockFaceId(){
+  try{
+    await navigator.credentials.get({ publicKey:{
+      challenge: crypto.getRandomValues(new Uint8Array(32)),
+      allowCredentials:[{ id: unb64(lockConfig.credentialId), type:'public-key' }],
+      userVerification:'required', timeout:60000
+    }});
+    // Biometric confirmed. We can only fully unlock without re-typing the PIN
+    // if we still have the AES key cached in memory from earlier this session.
+    if(sessionKey){
+      hideLockScreen();
+      render();
+    } else {
+      document.getElementById('lockError').textContent = 'Face ID confirmed — enter your passcode once to finish opening this session.';
+    }
+  }catch(err){ /* cancelled or failed, stay on PIN screen */ }
+}
+document.getElementById('faceIdBtn').addEventListener('click', quickUnlockFaceId);
+
+/* ---------- auto-lock ---------- */
+function armAutoLock(){
+  document.addEventListener('visibilitychange', () => {
+    if(document.hidden && lockConfig.enabled){
+      const mins = lockConfig.autoLockMinutes || 0;
+      clearTimeout(autoLockTimer);
+      autoLockTimer = setTimeout(() => { showLockScreen('unlock'); }, mins*60000);
+    } else if(!document.hidden){
+      clearTimeout(autoLockTimer);
+    }
+  });
+}
+
+/* ---------- settings modal ---------- */
+function syncSettingsUI(){
+  document.getElementById('lockToggle').checked = lockConfig.enabled;
+  document.getElementById('faceIdRow').style.display = lockConfig.enabled ? 'flex' : 'none';
+  document.getElementById('autoLockRow').style.display = lockConfig.enabled ? 'flex' : 'none';
+  document.getElementById('changePinRow').style.display = lockConfig.enabled ? 'flex' : 'none';
+  document.getElementById('faceIdToggle').checked = lockConfig.faceIdEnabled;
+  document.getElementById('autoLockSelect').value = String(lockConfig.autoLockMinutes || 0);
+}
+document.getElementById('settingsBtn').addEventListener('click', async () => {
+  syncSettingsUI();
+  const avail = await platformAuthAvailable();
+  document.getElementById('faceIdRow').style.display = (lockConfig.enabled && avail) ? 'flex' : 'none';
+  document.getElementById('settingsBackdrop').classList.add('show');
+});
+document.getElementById('closeSettings').addEventListener('click', () => document.getElementById('settingsBackdrop').classList.remove('show'));
+document.getElementById('lockToggle').addEventListener('change', async (e) => {
+  if(e.target.checked){
+    document.getElementById('settingsBackdrop').classList.remove('show');
+    showLockScreen('setup');
+  } else {
+    if(!confirm('Turn off passcode lock? Your data will be stored unencrypted on this device.')) { e.target.checked = true; return; }
+    // decrypt current vault (sessionKey should exist since app is open) and store plain
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    localStorage.removeItem(VAULT_KEY);
+    lockConfig = { enabled:false, salt:null, faceIdEnabled:false, credentialId:null, autoLockMinutes:0 };
+    saveLockConfig();
+    sessionKey = null;
+    syncSettingsUI();
+  }
+});
+document.getElementById('faceIdToggle').addEventListener('change', async (e) => {
+  if(e.target.checked){
+    const ok = await enrollFaceId();
+    if(!ok){ e.target.checked = false; alert('Could not set up Face ID / Touch ID on this device/browser.'); }
+  } else {
+    lockConfig.faceIdEnabled = false; lockConfig.credentialId = null; saveLockConfig();
+  }
+});
+document.getElementById('autoLockSelect').addEventListener('change', (e) => {
+  lockConfig.autoLockMinutes = Number(e.target.value); saveLockConfig();
+});
+document.getElementById('changePinBtn').addEventListener('click', () => {
+  document.getElementById('settingsBackdrop').classList.remove('show');
+  showLockScreen('change-old');
+});
+
+/* ---------- startup ---------- */
+renderPinPad();
+loadLockConfig();
+if(lockConfig.enabled){
+  showLockScreen('unlock');
+} else {
+  loadPlainData();
+  render();
+}
 if('serviceWorker' in navigator){
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
 }
+armAutoLock();
 </script>
 </body>
 </html>
