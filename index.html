@@ -250,6 +250,18 @@
   .modal button.action.danger{background:var(--coral-soft);color:#C0432E;}
   .modal .warn-note{font-size:11.5px;color:var(--ink-soft);background:#FBF6E8;border-radius:10px;padding:10px 12px;margin-top:14px;line-height:1.5;}
   .modal .close-x{position:absolute;top:16px;right:18px;background:none;border:none;font-size:18px;color:var(--ink-soft);cursor:pointer;}
+
+  .import-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);}
+  .import-row .meta{flex:1;min-width:0;}
+  .import-row .desc{font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .import-row .date{font-size:11px;color:var(--ink-soft);}
+  .import-row .amt{font-family:'Inter',sans-serif;font-weight:700;font-size:13px;white-space:nowrap;font-variant-numeric:tabular-nums;}
+  .import-row .amt.in{color:var(--teal-dark);}
+  .import-row .amt.out{color:#C0432E;}
+  .import-row select{
+    border:1px solid var(--line);border-radius:8px;padding:5px 6px;font-family:'Inter',sans-serif;font-size:12px;
+    max-width:150px;background:var(--bg);
+  }
 </style>
 </head>
 <body>
@@ -385,6 +397,12 @@
         <input type="file" id="importInput" accept="application/json" style="display:none;">
       </label>
     </div>
+    <div class="row">
+      <div><div class="label">Import Revolut transactions</div><div class="desc">Upload a statement CSV from Revolut (Accounts → Statement → CSV)</div></div>
+      <label class="action secondary" style="cursor:pointer;">Choose CSV
+        <input type="file" id="revolutInput" accept=".csv,text/csv" style="display:none;">
+      </label>
+    </div>
 
     <h3 class="modal-section-title">🔒 Security</h3>
     <div class="row">
@@ -408,6 +426,23 @@
       <button class="action secondary" id="changePinBtn">Change</button>
     </div>
     <div class="warn-note">If you forget your passcode, this data can't be recovered on this device — it's genuinely encrypted, not just hidden. Keep a JSON backup somewhere safe as your recovery copy.</div>
+  </div>
+</div>
+
+<!-- REVOLUT IMPORT REVIEW MODAL -->
+<div class="modal-backdrop" id="importBackdrop">
+  <div class="modal" style="max-width:640px;">
+    <button class="close-x" id="closeImport">✕</button>
+    <h2>📥 Import Revolut transactions</h2>
+    <p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 12px;">Check each row, adjust the category if needed, then add them into <b id="importMonthLabel"></b>. Nothing is saved until you tap "Add to budget".</p>
+    <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-soft);margin-bottom:10px;">
+      <input type="checkbox" id="includeExchanges"> include currency exchanges between your own wallets
+    </label>
+    <div id="importList" style="max-height:340px;overflow-y:auto;border-top:1px solid var(--line);"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;gap:10px;flex-wrap:wrap;">
+      <span style="font-size:12px;color:var(--ink-soft);" id="importSummary"></span>
+      <button class="action" id="confirmImportBtn">Add to budget</button>
+    </div>
   </div>
 </div>
 
@@ -475,6 +510,7 @@ function freshData(){
 }
 function normalizeData(d){
   if(!d.assetSnapshots) d.assetSnapshots = [];
+  if(!d.categoryRules) d.categoryRules = {};
   Object.values(d.months).forEach(m => { ['income','expenses','savings'].forEach(k => ensureIds(m[k])); });
   ensureIds(d.assets);
   return d;
@@ -537,33 +573,6 @@ function saveLockConfig(){ localStorage.setItem(LOCK_CONFIG_KEY, JSON.stringify(
 
 function fmt(n){ n = Number(n)||0; return n.toLocaleString(undefined,{maximumFractionDigits:2}); }
 
-/* ---------- saving files: standalone home-screen apps have no browser chrome,
-   so plain <a download> often fails silently. Web Share (Save to Files) is the reliable path. ---------- */
-async function saveFile(filename, mime, content){
-  try{
-    const file = new File([content], filename, {type: mime});
-    if(navigator.canShare && navigator.canShare({files:[file]})){
-      await navigator.share({files:[file], title:filename});
-      return true;
-    }
-  }catch(err){
-    if(err && err.name === 'AbortError') return false; // user cancelled the share sheet, not an error
-  }
-  try{
-    const blob = new Blob([content], {type:mime});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = filename;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(()=>URL.revokeObjectURL(url), 4000);
-    return true;
-  }catch(err){
-    // last resort: open it in a new tab so the person can long-press → Save to Files
-    const url = URL.createObjectURL(new Blob([content], {type:mime}));
-    window.open(url, '_blank');
-    return true;
-  }
-}
 function sum(arr){ return arr.reduce((a,r)=>a + (Number(r.amount)||0), 0); }
 function currentMonth(){ return data.months[data.currentMonthKey]; }
 
@@ -938,7 +947,168 @@ document.getElementById('reportBtn').addEventListener('click', () => {
   window.print();
 });
 
-/* ---------- PIN pad UI ---------- */
+/* ---------- Revolut CSV import ---------- */
+// Revolut's personal statement export (Accounts > Statement > CSV) uses these columns:
+// Type, Product, Started Date, Completed Date, Description, Amount, Fee, Currency, State, Balance
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  for(let i=0;i<text.length;i++){
+    const c = text[i];
+    if(inQuotes){
+      if(c === '"'){
+        if(text[i+1] === '"'){ field += '"'; i++; } else { inQuotes = false; }
+      } else field += c;
+    } else {
+      if(c === '"'){ inQuotes = true; }
+      else if(c === ','){ row.push(field); field = ''; }
+      else if(c === '\n' || c === '\r'){
+        if(c === '\r' && text[i+1] === '\n') i++;
+        row.push(field); field = '';
+        if(row.length > 1 || row[0] !== ''){ rows.push(row); }
+        row = [];
+      } else field += c;
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  return rows;
+}
+
+function normalizeDesc(s){
+  return String(s||'').trim().toLowerCase().replace(/[^a-z0-9 ]/g,'').replace(/\s+/g,' ');
+}
+
+let pendingImportRows = [];
+
+function suggestCategory(desc, direction, month){
+  const norm = normalizeDesc(desc);
+  if(data.categoryRules[norm]) return data.categoryRules[norm];
+  const pools = direction === 'in'
+    ? [{section:'income', arr:month.income}]
+    : [{section:'expenses', arr:month.expenses}, {section:'savings', arr:month.savings}];
+  for(const p of pools){
+    for(const row of p.arr){
+      const words = row.label.toLowerCase().split(/[^a-z0-9]+/).filter(w => w.length > 2);
+      if(words.some(w => norm.includes(w))) return p.section + ':' + row.label;
+    }
+  }
+  if(direction === 'in'){
+    return month.income[0] ? 'income:' + month.income[0].label : 'skip';
+  }
+  const misc = month.expenses.find(r => /misc/i.test(r.label));
+  if(misc) return 'expenses:' + misc.label;
+  return month.expenses[0] ? 'expenses:' + month.expenses[0].label : 'skip';
+}
+
+function categoryOptionsHtml(month, selected){
+  const grp = (label, arr, section) => `<optgroup label="${label}">${arr.map(r =>
+    `<option value="${section}:${escapeAttr(r.label)}" ${selected===section+':'+r.label?'selected':''}>${escapeHtml(r.label)}</option>`
+  ).join('')}</optgroup>`;
+  return `<option value="skip" ${selected==='skip'?'selected':''}>Skip / ignore</option>`
+    + grp('Income', month.income, 'income')
+    + grp('Expenses', month.expenses, 'expenses')
+    + grp('Savings', month.savings, 'savings');
+}
+
+document.getElementById('revolutInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const rows = parseCSV(reader.result);
+      if(rows.length < 2){ alert('That file looks empty.'); return; }
+      const header = rows[0].map(h => h.trim().toLowerCase());
+      const idx = (name) => header.indexOf(name);
+      const iType = idx('type'), iDesc = idx('description'), iAmount = idx('amount'),
+            iFee = idx('fee'), iState = idx('state'), iDate = idx('started date');
+      if(iAmount === -1 || iDesc === -1){
+        alert("This doesn't look like a Revolut statement CSV. Export it from the Revolut app: Accounts → Statement → CSV.");
+        return;
+      }
+      const parsed = rows.slice(1).filter(r => r.length > 1).map(r => ({
+        type: (r[iType]||'').trim(),
+        description: (r[iDesc]||'').trim(),
+        amount: parseFloat(r[iAmount]) || 0,
+        fee: iFee > -1 ? (parseFloat(r[iFee]) || 0) : 0,
+        state: (r[iState]||'').trim(),
+        date: iDate > -1 ? (r[iDate]||'').slice(0,10) : ''
+      })).filter(r => !r.state || /completed/i.test(r.state));
+
+      pendingImportRows = parsed;
+      document.getElementById('importMonthLabel').textContent = monthLabel(data.currentMonthKey);
+      renderImportList();
+      document.getElementById('settingsBackdrop').classList.remove('show');
+      document.getElementById('importBackdrop').classList.add('show');
+    }catch(err){
+      alert('That file could not be read as a Revolut CSV export.');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+function renderImportList(){
+  const month = currentMonth();
+  const includeExchanges = document.getElementById('includeExchanges').checked;
+  const list = document.getElementById('importList');
+  const rows = pendingImportRows.filter(r => includeExchanges || !/exchange/i.test(r.type));
+
+  if(rows.length === 0){
+    list.innerHTML = '<div class="empty">no transactions to show — try including exchanges above, or check the file.</div>';
+  } else {
+    list.innerHTML = rows.map((r, i) => {
+      const direction = r.amount >= 0 ? 'in' : 'out';
+      const total = direction === 'out' ? Math.abs(r.amount) + Math.abs(r.fee||0) : Math.abs(r.amount);
+      const suggested = suggestCategory(r.description, direction, month);
+      return `
+        <div class="import-row">
+          <div class="meta">
+            <div class="desc">${escapeHtml(r.description || r.type)}</div>
+            <div class="date">${r.date}</div>
+          </div>
+          <div class="amt ${direction}">${direction==='in'?'+':'−'}${fmt(total)}</div>
+          <select data-import-idx="${i}">${categoryOptionsHtml(month, suggested)}</select>
+        </div>
+      `;
+    }).join('');
+  }
+  updateImportSummary(rows);
+  list.dataset.rowCount = rows.length;
+  list._rows = rows;
+}
+document.getElementById('includeExchanges').addEventListener('change', renderImportList);
+
+function updateImportSummary(rows){
+  document.getElementById('importSummary').textContent = `${rows.length} transaction${rows.length===1?'':'s'} found`;
+}
+
+document.getElementById('confirmImportBtn').addEventListener('click', () => {
+  const list = document.getElementById('importList');
+  const rows = list._rows || [];
+  const month = currentMonth();
+  let count = 0;
+
+  rows.forEach((r, i) => {
+    const sel = list.querySelector(`select[data-import-idx="${i}"]`);
+    if(!sel || sel.value === 'skip') return;
+    const [section, label] = sel.value.split(/:(.+)/).filter(x=>x!==undefined).slice(0,2);
+    const direction = r.amount >= 0 ? 'in' : 'out';
+    const total = direction === 'out' ? Math.abs(r.amount) + Math.abs(r.fee||0) : Math.abs(r.amount);
+    const arr = month[section];
+    let target = arr.find(x => x.label === label);
+    if(!target){ target = {id:uid(), label, amount:0}; arr.push(target); }
+    target.amount = (Number(target.amount)||0) + total;
+    data.categoryRules[normalizeDesc(r.description)] = sel.value;
+    count++;
+  });
+
+  scheduleSave();
+  render();
+  document.getElementById('importBackdrop').classList.remove('show');
+  exportStatus(`Imported ${count} transaction${count===1?'':'s'} into ${monthLabel(data.currentMonthKey)}.`);
+});
+document.getElementById('closeImport').addEventListener('click', () => document.getElementById('importBackdrop').classList.remove('show'));
 function renderPinPad(){
   const pad = document.getElementById('pinPad');
   const keys = ['1','2','3','4','5','6','7','8','9','','0','⌫'];
