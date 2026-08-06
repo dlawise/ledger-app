@@ -426,6 +426,7 @@
       <button class="action secondary" id="changePinBtn">Change</button>
     </div>
     <div class="warn-note">If you forget your passcode, this data can't be recovered on this device — it's genuinely encrypted, not just hidden. Keep a JSON backup somewhere safe as your recovery copy.</div>
+    <div style="text-align:center;font-size:11px;color:var(--ink-soft);margin-top:14px;">App version: <span id="appVersion"></span></div>
   </div>
 </div>
 
@@ -448,6 +449,7 @@
 
 <script>
 const CUR_SYMBOLS = {N:'₦', '$':'$', '£':'£', '€':'€'};
+const APP_VERSION = '2026.08 · Revolut import + auto-update fix';
 const STORAGE_KEY = 'ledger-data-v2';
 const OLD_STORAGE_KEY = 'finance-data';
 
@@ -1019,9 +1021,30 @@ document.getElementById('revolutInput').addEventListener('change', (e) => {
       const rows = parseCSV(reader.result);
       if(rows.length < 2){ alert('That file looks empty.'); return; }
       const header = rows[0].map(h => h.trim().toLowerCase());
-      const idx = (name) => header.indexOf(name);
-      const iType = idx('type'), iDesc = idx('description'), iAmount = idx('amount'),
-            iFee = idx('fee'), iState = idx('state'), iDate = idx('started date');
+      const idx = (...candidates) => {
+        for(const name of candidates){
+          const i = header.indexOf(name);
+          if(i > -1) return i;
+        }
+        // loose fallback: first header that contains the candidate as a substring
+        for(const name of candidates){
+          const i = header.findIndex(h => h.includes(name));
+          if(i > -1) return i;
+        }
+        return -1;
+      };
+      const iType = idx('type');
+      const iDesc = idx('description', 'reference', 'payee');
+      const iAmount = idx('amount', 'amount (payment currency)');
+      const iFee = idx('fee');
+      const iState = idx('state', 'status');
+      const iDate = idx('started date', 'date', 'transaction date');
+      const parseAmount = (v) => {
+        if(v === undefined || v === null || v === '') return 0;
+        const cleaned = String(v).replace(/[^0-9.\-]/g, '');
+        const n = parseFloat(cleaned);
+        return isNaN(n) ? 0 : n;
+      };
       if(iAmount === -1 || iDesc === -1){
         alert("This doesn't look like a Revolut statement CSV. Export it from the Revolut app: Accounts → Statement → CSV.");
         return;
@@ -1029,8 +1052,8 @@ document.getElementById('revolutInput').addEventListener('change', (e) => {
       const parsed = rows.slice(1).filter(r => r.length > 1).map(r => ({
         type: (r[iType]||'').trim(),
         description: (r[iDesc]||'').trim(),
-        amount: parseFloat(r[iAmount]) || 0,
-        fee: iFee > -1 ? (parseFloat(r[iFee]) || 0) : 0,
+        amount: parseAmount(r[iAmount]),
+        fee: iFee > -1 ? parseAmount(r[iFee]) : 0,
         state: (r[iState]||'').trim(),
         date: iDate > -1 ? (r[iDate]||'').slice(0,10) : ''
       })).filter(r => !r.state || /completed/i.test(r.state));
@@ -1305,6 +1328,7 @@ function syncSettingsUI(){
 }
 document.getElementById('settingsBtn').addEventListener('click', async () => {
   syncSettingsUI();
+  document.getElementById('appVersion').textContent = APP_VERSION;
   const avail = await platformAuthAvailable();
   document.getElementById('faceIdRow').style.display = (lockConfig.enabled && avail) ? 'flex' : 'none';
   document.getElementById('settingsBackdrop').classList.add('show');
@@ -1351,7 +1375,20 @@ if(lockConfig.enabled){
   render();
 }
 if('serviceWorker' in navigator){
-  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      // check for a newer sw.js every time the app is opened, not just once
+      reg.update().catch(()=>{});
+    }).catch(()=>{});
+  });
+  // when a new service worker takes over (i.e. an update was found and installed),
+  // reload once so the freshly-updated files actually get used.
+  let refreshedOnce = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if(refreshedOnce) return;
+    refreshedOnce = true;
+    window.location.reload();
+  });
 }
 armAutoLock();
 </script>
