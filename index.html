@@ -290,6 +290,7 @@
   <nav class="tabs">
     <button data-tab="overview" class="active">Overview</button>
     <button data-tab="budget">Budget</button>
+    <button data-tab="payslip">Payslip</button>
     <button data-tab="assets">Assets</button>
     <button data-tab="trends">Trends</button>
   </nav>
@@ -328,6 +329,38 @@
     <div class="card">
       <div class="card-head"><h2>Left over</h2><span class="eyebrow">Income − expenses − savings</span></div>
       <div class="card-total" id="balanceRow" style="border-top:none;"><span>Balance</span><span id="balanceTotal">0</span></div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-payslip">
+    <div class="stat-grid" id="payslipStatGrid"></div>
+    <div id="payslipTipsWrap"></div>
+
+    <div class="card">
+      <div class="card-head"><h2>📷 Scan a payslip photo</h2><span class="eyebrow">Optional</span></div>
+      <div style="padding:0 18px 18px;">
+        <p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 10px;line-height:1.5;">Upload a photo of your payslip and I'll try to read the figures off it. This runs entirely in your browser — the photo is never uploaded or saved anywhere, just used once to suggest values. OCR isn't perfect, so always check before inserting.</p>
+        <label class="action secondary" style="cursor:pointer;display:inline-flex;">Choose photo
+          <input type="file" id="payslipScanInput" accept="image/*" style="display:none;">
+        </label>
+        <div id="scanStatus" style="font-size:12px;color:var(--ink-soft);margin-top:8px;"></div>
+        <div id="scanPreview"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>🧾 Payslip</h2><span class="eyebrow" id="payslipMonthLabel"></span></div>
+      <table><tbody id="payslipBody"></tbody></table>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>📘 About tax codes &amp; deductions</h2><span class="eyebrow">General information</span></div>
+      <div id="payslipInfoWrap" style="padding:0 18px 18px;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>📈 Pay over time</h2><span class="eyebrow">Months with a payslip logged</span></div>
+      <div class="chart-wrap"><canvas id="payslipTrendChart"></canvas></div>
     </div>
   </div>
 
@@ -449,7 +482,7 @@
 
 <script>
 const CUR_SYMBOLS = {N:'₦', '$':'$', '£':'£', '€':'€'};
-const APP_VERSION = '2026.08 · Revolut import + auto-update fix';
+const APP_VERSION = '2026.08 · Payslip tracker + photo scan';
 const STORAGE_KEY = 'ledger-data-v2';
 const OLD_STORAGE_KEY = 'finance-data';
 
@@ -463,6 +496,21 @@ const DEFAULT_MONTH = () => ({
   ],
   savings: [ {label:'Rainy Day', amount:0}, {label:'Invest', amount:0}, {label:'Osusu', amount:0} ]
 });
+
+const DEFAULT_PAYSLIP = () => ({
+  taxCode:'', gross:0, tax:0, ni:0, pensionEmployee:0, pensionEmployer:0, studentLoan:0, otherDeductions:0, netPay:0
+});
+const PAYSLIP_FIELDS = [
+  {key:'taxCode', label:'Tax code', type:'text'},
+  {key:'gross', label:'Gross pay', type:'money'},
+  {key:'tax', label:'Tax paid (PAYE)', type:'money'},
+  {key:'ni', label:'National Insurance', type:'money'},
+  {key:'pensionEmployee', label:'Pension (you)', type:'money'},
+  {key:'pensionEmployer', label:'Pension (employer)', type:'money'},
+  {key:'studentLoan', label:'Student loan', type:'money'},
+  {key:'otherDeductions', label:'Other deductions', type:'money'},
+  {key:'netPay', label:'Net pay (take-home)', type:'money'},
+];
 
 const DEFAULT_ASSETS = () => ([
   {label:'Revolut - Commodities', amount:0, cur:'$'}, {label:'Revolut - Crypto', amount:0, cur:'$'},
@@ -503,17 +551,17 @@ function freshData(){
   let d;
   if(oldRaw){
     const old = JSON.parse(oldRaw);
-    d = { months: { [key]: { income: old.income||[], expenses: old.expenses||[], savings: old.savings||[] } },
+    d = { months: { [key]: { income: old.income||[], expenses: old.expenses||[], savings: old.savings||[], payslip: DEFAULT_PAYSLIP() } },
       currentMonthKey: key, assets: old.assets || DEFAULT_ASSETS(), assetSnapshots: [] };
   } else {
-    d = { months: { [key]: DEFAULT_MONTH() }, currentMonthKey: key, assets: DEFAULT_ASSETS(), assetSnapshots: [] };
+    d = { months: { [key]: { ...DEFAULT_MONTH(), payslip: DEFAULT_PAYSLIP() } }, currentMonthKey: key, assets: DEFAULT_ASSETS(), assetSnapshots: [] };
   }
   return d;
 }
 function normalizeData(d){
   if(!d.assetSnapshots) d.assetSnapshots = [];
   if(!d.categoryRules) d.categoryRules = {};
-  Object.values(d.months).forEach(m => { ['income','expenses','savings'].forEach(k => ensureIds(m[k])); });
+  Object.values(d.months).forEach(m => { ['income','expenses','savings'].forEach(k => ensureIds(m[k])); if(!m.payslip) m.payslip = DEFAULT_PAYSLIP(); });
   ensureIds(d.assets);
   return d;
 }
@@ -608,10 +656,12 @@ document.getElementById('createMonthBtn').addEventListener('click', () => {
       data.months[val] = {
         income: latest.income.map(r => ({id:uid(), label:r.label, amount:0})),
         expenses: latest.expenses.map(r => ({id:uid(), label:r.label, amount:0})),
-        savings: latest.savings.map(r => ({id:uid(), label:r.label, amount:0}))
+        savings: latest.savings.map(r => ({id:uid(), label:r.label, amount:0})),
+        payslip: { ...DEFAULT_PAYSLIP(), taxCode: (latest.payslip && latest.payslip.taxCode) || '' }
       };
     } else {
       data.months[val] = DEFAULT_MONTH();
+      data.months[val].payslip = DEFAULT_PAYSLIP();
       ensureIds(data.months[val].income); ensureIds(data.months[val].expenses); ensureIds(data.months[val].savings);
     }
   }
@@ -769,6 +819,236 @@ function renderAssetsPanel(){
   }
 }
 
+/* ---------- Payslip ---------- */
+function ensurePayslip(m){
+  if(!m.payslip) m.payslip = DEFAULT_PAYSLIP();
+  return m.payslip;
+}
+
+function renderPayslipForm(){
+  const m = currentMonth();
+  const p = ensurePayslip(m);
+  document.getElementById('payslipMonthLabel').textContent = monthLabel(data.currentMonthKey);
+  const tbody = document.getElementById('payslipBody');
+  tbody.innerHTML = PAYSLIP_FIELDS.map(f => `
+    <tr class="row">
+      <td class="label">${f.label}</td>
+      <td class="amount"><div class="amt-wrap"><input type="${f.type==='text'?'text':'number'}" value="${f.type==='text'?escapeAttr(p[f.key]||''):(p[f.key]||0)}" data-key="payslip" data-field="${f.key}" ${f.type==='money'?'step="any"':''}></div></td>
+    </tr>
+  `).join('');
+}
+
+function renderPayslipStats(){
+  const p = ensurePayslip(currentMonth());
+  const gross = Number(p.gross)||0, tax = Number(p.tax)||0, ni = Number(p.ni)||0, netPay = Number(p.netPay)||0;
+  const effTaxRate = gross>0 ? (tax/gross*100) : 0;
+  const takeHomePct = gross>0 ? (netPay/gross*100) : 0;
+  const stats = [
+    {k:'Gross pay', v:fmt(gross), cls:'gold'},
+    {k:'Tax paid', v:fmt(tax), cls:'neg'},
+    {k:'National Insurance', v:fmt(ni), cls:'neg'},
+    {k:'Net pay', v:fmt(netPay), cls:'pos'},
+    {k:'Effective tax rate', v:effTaxRate.toFixed(1)+'%', cls:'gold'},
+    {k:'Take-home %', v:takeHomePct.toFixed(1)+'%', cls:takeHomePct>=70?'pos':'gold'},
+  ];
+  document.getElementById('payslipStatGrid').innerHTML = stats.map(s=>`
+    <div class="stat"><div class="k">${s.k}</div><div class="v ${s.cls}">${s.v}</div></div>
+  `).join('');
+}
+
+function renderPayslipTips(){
+  const keys = sortedMonthKeys();
+  const idx = keys.indexOf(data.currentMonthKey);
+  const p = ensurePayslip(currentMonth());
+  const prevKey = idx>0 ? keys[idx-1] : null;
+  const prevP = prevKey ? data.months[prevKey].payslip : null;
+  const tips = [];
+
+  const gross = Number(p.gross)||0, tax = Number(p.tax)||0, ni = Number(p.ni)||0, netPay = Number(p.netPay)||0;
+  const pensionEmployee = Number(p.pensionEmployee)||0, studentLoan = Number(p.studentLoan)||0, otherDed = Number(p.otherDeductions)||0;
+
+  if(gross===0 && tax===0 && netPay===0){
+    tips.push({e:'👋', t:'Log this month\'s payslip figures below, or scan a photo above, to see checks and stats here.'});
+  }
+
+  const expectedNet = gross - tax - ni - pensionEmployee - studentLoan - otherDed;
+  if(gross>0 && netPay>0 && Math.abs(expectedNet - netPay) > Math.max(1, gross*0.01)){
+    tips.push({e:'🔍', t:`Gross pay minus the deductions listed below comes to <b>${fmt(expectedNet)}</b>, which doesn't quite match the net pay you entered (<b>${fmt(netPay)}</b>). Worth double-checking you've copied every figure across, or your payslip may include a line not captured here.`});
+  }
+
+  const emergencyCodes = /^(BR|D0|D1|0T|NT)$/i;
+  const isW1M1 = /W1|M1/i.test(p.taxCode||'');
+  if(p.taxCode && (emergencyCodes.test(p.taxCode.trim()) || isW1M1)){
+    tips.push({e:'⚠️', t:`Tax code <b>${escapeHtml(p.taxCode)}</b> often signals an emergency or non-cumulative code, which can mean more tax than usual is being taken. It's worth checking this is correct — HMRC's "Check your Income Tax" service or your payroll team can confirm.`});
+  }
+  if(prevP && prevP.taxCode && p.taxCode && prevP.taxCode.trim().toUpperCase() !== p.taxCode.trim().toUpperCase()){
+    tips.push({e:'📋', t:`Your tax code changed from <b>${escapeHtml(prevP.taxCode)}</b> to <b>${escapeHtml(p.taxCode)}</b> since ${monthLabel(prevKey)}. If you weren't expecting a change, it's worth confirming why with HMRC or your employer.`});
+  }
+  if(prevP){
+    const prevGross = Number(prevP.gross)||0, prevTax = Number(prevP.tax)||0;
+    if(prevGross>0 && gross>0){
+      const prevRate = prevTax/prevGross*100, curRate = tax/gross*100;
+      const grossChange = Math.abs(gross-prevGross)/prevGross*100;
+      if(grossChange < 10 && Math.abs(curRate-prevRate) > 5){
+        tips.push({e:'📈', t:`Your effective tax rate moved from ${prevRate.toFixed(1)}% to ${curRate.toFixed(1)}% while gross pay stayed fairly similar. Sometimes that's normal (e.g. crossing a tax band, a one-off adjustment) — but it can also point to a tax code issue, so it may be worth a second look.`});
+      }
+    }
+  }
+
+  const wrap = document.getElementById('payslipTipsWrap');
+  wrap.innerHTML = tips.slice(0,4).map(t => `
+    <div class="tip-card"><div class="emoji">${t.e}</div><div class="txt">${t.t}</div></div>
+  `).join('') + (tips.length ? `<div class="tips-note">Pattern-based checks on your own numbers, not tax advice — always confirm anything unexpected with HMRC or your payroll/accountant.</div>` : '');
+}
+
+function renderPayslipInfo(){
+  const items = [
+    'Pension contributions taken before tax (salary sacrifice, or a "net pay arrangement" scheme) reduce your taxable gross pay — one reason increasing pension contributions can lower the tax you pay. Check with your employer which type your scheme uses.',
+    'An emergency tax code (like BR, 0T, or one ending in W1/M1) is usually temporary and often means you\'re being taxed without your usual tax-free allowance applied. It\'s normally corrected once HMRC has your full details, and any tax overpaid is refunded.',
+    'The Personal Allowance, tax bands and National Insurance thresholds change with each UK tax year (6 April – 5 April) — check gov.uk for the figures that applied on the date of this payslip rather than relying on this app.',
+    'If you think you\'ve overpaid tax — for example after an emergency tax code, or leaving a job partway through the year — you can check and claim a refund directly through HMRC\'s "Check your Income Tax" online service.'
+  ];
+  document.getElementById('payslipInfoWrap').innerHTML = `
+    <ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.6;color:var(--ink);">
+      ${items.map(i=>`<li style="margin-bottom:8px;">${i}</li>`).join('')}
+    </ul>
+    <div class="tips-note" style="margin-top:4px;">General information only, not personalized tax or financial advice — rules vary by circumstance and change over time.</div>
+  `;
+}
+
+let payslipTrendChart = null;
+function renderPayslipTrend(){
+  const keys = sortedMonthKeys().filter(k => {
+    const p = data.months[k].payslip;
+    return p && (Number(p.gross)||0) > 0;
+  });
+  const canvasEl = document.getElementById('payslipTrendChart');
+  const wrap = canvasEl ? canvasEl.parentElement : document.querySelector('#panel-payslip .chart-wrap');
+  if(payslipTrendChart) payslipTrendChart.destroy();
+  if(keys.length === 0){
+    wrap.innerHTML = '<div class="empty">log a payslip for at least one month to see this chart</div>';
+    return;
+  }
+  if(!document.getElementById('payslipTrendChart')){ wrap.innerHTML = '<canvas id="payslipTrendChart"></canvas>'; }
+  const labels = keys.map(monthLabel);
+  const gross = keys.map(k => Number(data.months[k].payslip.gross)||0);
+  const tax = keys.map(k => Number(data.months[k].payslip.tax)||0);
+  const net = keys.map(k => Number(data.months[k].payslip.netPay)||0);
+  payslipTrendChart = new Chart(document.getElementById('payslipTrendChart'), {
+    type:'line',
+    data:{ labels, datasets:[
+      {label:'Gross', data:gross, borderColor:'#E3A93A', backgroundColor:'#E3A93A', tension:.3},
+      {label:'Tax', data:tax, borderColor:'#FF7A59', backgroundColor:'#FF7A59', tension:.3},
+      {label:'Net', data:net, borderColor:'#2F9E7A', backgroundColor:'#2F9E7A', tension:.3},
+    ]},
+    options:{ plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11.5}}}}, scales:{ y:{ ticks:{font:{family:'Inter',size:11}} }, x:{ ticks:{font:{family:'Inter',size:11}} } } }
+  });
+}
+
+function renderPayslip(){
+  ensurePayslip(currentMonth());
+  renderPayslipForm();
+  renderPayslipStats();
+  renderPayslipTips();
+  renderPayslipInfo();
+  renderPayslipTrend();
+}
+
+/* ---------- Payslip photo scan (client-side OCR, best-effort) ---------- */
+let tesseractLoadPromise = null;
+function loadTesseract(){
+  if(window.Tesseract) return Promise.resolve();
+  if(tesseractLoadPromise) return tesseractLoadPromise;
+  tesseractLoadPromise = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+    s.onload = resolve;
+    s.onerror = () => { tesseractLoadPromise = null; reject(new Error('load-failed')); };
+    document.head.appendChild(s);
+  });
+  return tesseractLoadPromise;
+}
+
+function parsePayslipText(text){
+  const norm = text.replace(/,/g,'').replace(/[£€$]/g,'');
+  function grab(patterns){
+    for(const p of patterns){
+      const m = norm.match(p);
+      if(m) return parseFloat(m[1]);
+    }
+    return null;
+  }
+  const gross = grab([/gross\s*pay[^\d\-]{0,15}([\d]+\.?\d*)/i, /total\s*gross[^\d\-]{0,15}([\d]+\.?\d*)/i]);
+  const tax = grab([/(?:paye\s*)?tax\s*(?:paid|deducted)?[^\d\-]{0,15}([\d]+\.?\d*)/i, /income\s*tax[^\d\-]{0,15}([\d]+\.?\d*)/i]);
+  const ni = grab([/national\s*insurance[^\d\-]{0,15}([\d]+\.?\d*)/i, /\bni\b[^\d\-]{0,10}([\d]+\.?\d*)/i]);
+  const pension = grab([/pension[^\d\-]{0,15}([\d]+\.?\d*)/i]);
+  const studentLoan = grab([/student\s*loan[^\d\-]{0,15}([\d]+\.?\d*)/i]);
+  const net = grab([/net\s*pay[^\d\-]{0,15}([\d]+\.?\d*)/i, /take[- ]?home[^\d\-]{0,15}([\d]+\.?\d*)/i]);
+  const taxCodeMatch = norm.match(/tax\s*code[:\s]*([0-9]{2,4}[A-Z]{1,2}(?:[- ]?[WM][12])?|BR|D0|D1|0T|NT)\b/i);
+  return {
+    gross, tax, ni, pensionEmployee: pension, studentLoan, netPay: net,
+    taxCode: taxCodeMatch ? taxCodeMatch[1].toUpperCase().replace(/\s+/g,'') : null
+  };
+}
+
+function renderScanPreview(extracted){
+  const fieldsFound = PAYSLIP_FIELDS.filter(f => extracted[f.key] !== null && extracted[f.key] !== undefined);
+  const box = document.getElementById('scanPreview');
+  if(fieldsFound.length === 0){
+    box.innerHTML = '<div class="empty">Couldn\'t confidently pick out any figures from that photo — try a clearer shot, or enter the numbers manually below.</div>';
+    return;
+  }
+  box.innerHTML = `
+    <div style="margin-top:10px;border:1px solid var(--line);border-radius:12px;overflow:hidden;">
+      ${fieldsFound.map(f => `
+        <div class="import-row">
+          <div class="meta"><div class="desc">${f.label}</div></div>
+          <input type="${f.type==='text'?'text':'number'}" value="${escapeAttr(extracted[f.key])}" data-scankey="${f.key}" style="width:110px;border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:13px;text-align:right;">
+        </div>
+      `).join('')}
+    </div>
+    <div style="font-size:11.5px;color:var(--ink-soft);margin-top:8px;">Check these against the photo — OCR sometimes misreads digits.</div>
+    <button class="action" id="insertScanBtn" style="margin-top:10px;">Insert into payslip below</button>
+  `;
+  document.getElementById('insertScanBtn').addEventListener('click', () => {
+    const p = ensurePayslip(currentMonth());
+    box.querySelectorAll('[data-scankey]').forEach(inp => {
+      const key = inp.dataset.scankey;
+      const fdef = PAYSLIP_FIELDS.find(f=>f.key===key);
+      p[key] = fdef.type==='text' ? inp.value : (inp.value===''?0:Number(inp.value));
+    });
+    renderPayslip();
+    scheduleSave();
+    box.innerHTML = '';
+    document.getElementById('scanStatus').textContent = 'Inserted — double-check the figures below, then they\'ll save automatically.';
+  });
+}
+
+document.getElementById('payslipScanInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const statusEl = document.getElementById('scanStatus');
+  document.getElementById('scanPreview').innerHTML = '';
+  statusEl.textContent = 'Loading the photo reader…';
+  try{
+    await loadTesseract();
+  } catch(err){
+    statusEl.textContent = 'Could not load the photo reader — check your connection, or enter the figures manually below.';
+    e.target.value = '';
+    return;
+  }
+  statusEl.textContent = 'Reading the photo in your browser… it is never uploaded or saved.';
+  try{
+    const { data:{ text } } = await Tesseract.recognize(file, 'eng');
+    const extracted = parsePayslipText(text);
+    renderScanPreview(extracted);
+    statusEl.textContent = 'Here\'s what I could read — check it, then insert what looks right.';
+  } catch(err){
+    statusEl.textContent = 'Couldn\'t read that photo clearly — try a clearer, well-lit shot, or enter the figures manually below.';
+  }
+  e.target.value = '';
+});
+
 function renderTrends(){
   const keys = sortedMonthKeys();
   const labels = keys.map(monthLabel);
@@ -813,6 +1093,7 @@ function render(){
   renderSimpleTable('savings','savingsBody');
   renderTotals();
   renderOverview();
+  renderPayslip();
   renderAssetsPanel();
   renderTrends();
 }
@@ -824,12 +1105,21 @@ document.querySelectorAll('nav.tabs button').forEach(btn => {
     btn.classList.add('active');
     document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
     if(btn.dataset.tab === 'overview') renderOverview();
+    if(btn.dataset.tab === 'payslip') renderPayslip();
     if(btn.dataset.tab === 'trends') renderTrends();
   });
 });
 
 document.addEventListener('input', (e) => {
   const t = e.target;
+  if(t.dataset && t.dataset.key === 'payslip' && t.dataset.field){
+    const p = ensurePayslip(currentMonth());
+    const field = t.dataset.field;
+    p[field] = field === 'taxCode' ? t.value : (t.value===''?0:Number(t.value));
+    renderPayslipStats(); renderPayslipTips(); renderPayslipTrend();
+    scheduleSave();
+    return;
+  }
   if(t.dataset && t.dataset.key && t.dataset.id && t.dataset.field){
     const arr = t.dataset.key === 'assets' ? data.assets : currentMonth()[t.dataset.key];
     const row = arr.find(r => r.id === t.dataset.id);
@@ -899,7 +1189,7 @@ document.getElementById('importInput').addEventListener('change', (e) => {
     try{
       const imported = JSON.parse(reader.result);
       if(imported.months){
-        Object.values(imported.months).forEach(m => { ['income','expenses','savings'].forEach(k=>{ if(!Array.isArray(m[k])) m[k]=[]; ensureIds(m[k]); }); });
+        Object.values(imported.months).forEach(m => { ['income','expenses','savings'].forEach(k=>{ if(!Array.isArray(m[k])) m[k]=[]; ensureIds(m[k]); }); if(!m.payslip) m.payslip = DEFAULT_PAYSLIP(); });
         if(!imported.assets) imported.assets = DEFAULT_ASSETS();
         ensureIds(imported.assets);
         if(!imported.assetSnapshots) imported.assetSnapshots = [];
@@ -925,6 +1215,13 @@ document.getElementById('csvBtn').addEventListener('click', () => {
   rows.push([]);
   rows.push(['Account','Currency','Amount']);
   data.assets.forEach(r => rows.push([r.label, r.cur, r.amount]));
+  rows.push([]);
+  rows.push(['Month','Payslip field','Value']);
+  sortedMonthKeys().forEach(k => {
+    const p = data.months[k].payslip;
+    if(!p) return;
+    PAYSLIP_FIELDS.forEach(f => rows.push([monthLabel(k), f.label, p[f.key]]));
+  });
   const csv = rows.map(r => r.map(v => `"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob = new Blob([csv], {type:'text/csv'});
   saveFile(blob, 'ledger-export-' + new Date().toISOString().slice(0,10) + '.csv', 'text/csv');
