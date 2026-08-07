@@ -32,6 +32,20 @@
     --line:#EAE4D6;
     --shadow: 0 2px 10px rgba(31,42,36,0.06);
   }
+  [data-theme="dark"]{
+    --bg:#171D19;
+    --card:#20271F;
+    --ink:#EAF2ED;
+    --ink-soft:#9BAAA1;
+    --teal:#3BBE93;
+    --teal-dark:#2F9E7A;
+    --teal-soft:#1E332A;
+    --coral:#FF8A6B;
+    --coral-soft:#3A2320;
+    --gold:#E3A93A;
+    --line:#2C352F;
+    --shadow: 0 2px 10px rgba(0,0,0,0.25);
+  }
   *{box-sizing:border-box;}
   body{
     margin:0;
@@ -106,6 +120,9 @@
   .card-head{display:flex;justify-content:space-between;align-items:center;padding:16px 18px 12px;flex-wrap:wrap;gap:8px;}
   .card-head h2{font-family:'Baloo 2',sans-serif;font-size:17px;font-weight:600;margin:0;}
   .card-head .eyebrow{font-size:12px;color:var(--ink-soft);}
+  .planned-field{font-size:11.5px;color:var(--ink-soft);font-weight:600;display:inline-flex;align-items:center;gap:5px;margin-left:auto;}
+  .planned-field .planned-input{width:64px;border:1px solid var(--line);border-radius:7px;padding:4px 6px;font-family:'Inter',sans-serif;font-size:12px;color:var(--ink);background:var(--bg);}
+  .planned-note{font-weight:400;font-size:11.5px;opacity:.85;margin-left:6px;}
 
   table{width:100%;border-collapse:collapse;}
   tr.row{border-top:1px solid var(--line);}
@@ -125,9 +142,18 @@
     background:var(--teal-soft);border:none;color:var(--teal-dark);font-size:11.5px;font-weight:700;
     border-radius:6px;padding:4px 5px;
   }
-  td.del{text-align:right;width:36px;}
-  td.del button{background:none;border:none;color:#C9C2B0;cursor:pointer;font-size:15px;padding:4px 6px;}
+  td.del{text-align:right;width:56px;white-space:nowrap;}
+  td.del button{background:none;border:none;color:#C9C2B0;cursor:pointer;font-size:15px;padding:4px 5px;}
   td.del button:hover{color:var(--coral);}
+  td.del button.recur-btn.active{color:var(--teal);}
+  .row-category{margin-top:5px;width:100%;max-width:170px;border:1px solid var(--line);border-radius:6px;padding:3px 5px;font-family:'Inter',sans-serif;font-size:11px;color:var(--ink-soft);background:var(--bg);}
+  .cat-rank-list{padding:6px 18px 16px;}
+  .cat-rank-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;}
+  .cat-rank-row:last-child{border-bottom:none;}
+  .cat-rank-row .amt{font-weight:700;font-variant-numeric:tabular-nums;}
+  .cat-rank-row .chg{font-size:11px;margin-left:6px;}
+  .cat-rank-row .chg.up{color:#C0432E;}
+  .cat-rank-row .chg.down{color:var(--teal-dark);}
 
   .add-row{
     display:flex;align-items:center;gap:6px;padding:12px 18px;color:var(--teal-dark);font-size:13px;
@@ -302,28 +328,44 @@
       <div class="card-head"><h2>Where this month goes</h2><span class="eyebrow">Expense breakdown</span></div>
       <div class="chart-wrap"><canvas id="expenseDoughnut"></canvas></div>
     </div>
+    <div class="card">
+      <div class="card-head"><h2>By category</h2><span class="eyebrow">Ranked, vs last month</span></div>
+      <div class="cat-rank-list" id="categoryRankWrap"></div>
+    </div>
   </div>
 
   <div class="panel" id="panel-budget">
     <div class="card">
-      <div class="card-head"><h2>💵 Income</h2><span class="eyebrow" id="incomeMonthLabel"></span></div>
+      <div class="card-head">
+        <h2>💵 Income</h2>
+        <span class="eyebrow" id="incomeMonthLabel"></span>
+        <span class="planned-field">Planned <input type="number" id="plannedIncomeInput" class="planned-input" step="any"></span>
+      </div>
       <table><tbody id="incomeBody"></tbody></table>
       <div class="add-row" data-add="income">+ add income line</div>
-      <div class="card-total gold"><span>Total income</span><span id="incomeTotal">0</span></div>
+      <div class="card-total gold"><span>Total income<span class="planned-note" id="incomePlannedNote"></span></span><span id="incomeTotal">0</span></div>
     </div>
 
     <div class="card">
-      <div class="card-head"><h2>🧾 Expenses</h2><span class="eyebrow">This month</span></div>
+      <div class="card-head">
+        <h2>🧾 Expenses</h2>
+        <span class="eyebrow">This month</span>
+        <span class="planned-field">Planned <input type="number" id="plannedExpensesInput" class="planned-input" step="any"></span>
+      </div>
       <table><tbody id="expenseBody"></tbody></table>
       <div class="add-row" data-add="expenses">+ add expense line</div>
-      <div class="card-total neg"><span>Total expenses</span><span id="expenseTotal">0</span></div>
+      <div class="card-total neg"><span>Total expenses<span class="planned-note" id="expensesPlannedNote"></span></span><span id="expenseTotal">0</span></div>
     </div>
 
     <div class="card">
-      <div class="card-head"><h2>🌱 Savings</h2><span class="eyebrow">Set aside</span></div>
+      <div class="card-head">
+        <h2>🌱 Savings</h2>
+        <span class="eyebrow">Set aside</span>
+        <span class="planned-field">Planned <input type="number" id="plannedSavingsInput" class="planned-input" step="any"></span>
+      </div>
       <table><tbody id="savingsBody"></tbody></table>
       <div class="add-row" data-add="savings">+ add savings line</div>
-      <div class="card-total pos"><span>Total savings</span><span id="savingsTotal">0</span></div>
+      <div class="card-total pos"><span>Total savings<span class="planned-note" id="savingsPlannedNote"></span></span><span id="savingsTotal">0</span></div>
     </div>
 
     <div class="card">
@@ -354,6 +396,17 @@
     </div>
 
     <div class="card">
+      <div class="card-head"><h2>⚙️ Pay &amp; tax settings</h2><span class="eyebrow">Used for the insights below</span></div>
+      <table><tbody id="payslipSettingsBody"></tbody></table>
+      <div style="padding:0 18px 16px;font-size:11.5px;color:var(--ink-soft);line-height:1.5;">These default to commonly-used UK figures, but tax bands change each tax year (6 April) — check <b>gov.uk</b> and update them here so the insights below stay accurate for you.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>🔎 Insights from your numbers</h2><span class="eyebrow">Not tax or financial advice</span></div>
+      <div id="payslipInsightsWrap" style="padding:0 18px 18px;"></div>
+    </div>
+
+    <div class="card">
       <div class="card-head"><h2>📘 About tax codes &amp; deductions</h2><span class="eyebrow">General information</span></div>
       <div id="payslipInfoWrap" style="padding:0 18px 18px;"></div>
     </div>
@@ -372,6 +425,15 @@
       </div>
       <table><tbody id="assetsBody"></tbody></table>
       <div class="add-row" data-add="assets">+ add account</div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>💳 Liabilities</h2><span class="eyebrow">Loans, cards, anything owed</span></div>
+      <table><tbody id="liabilitiesBody"></tbody></table>
+      <div class="add-row" data-add="liabilities">+ add liability</div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Net worth</h2><span class="eyebrow">Assets − liabilities, by currency</span></div>
+      <div class="snap-list" id="netWorthNowList"></div>
     </div>
     <div class="card">
       <div class="card-head"><h2>Recent snapshots</h2><span class="eyebrow">Net worth over time</span></div>
@@ -436,6 +498,27 @@
         <input type="file" id="revolutInput" accept=".csv,text/csv" style="display:none;">
       </label>
     </div>
+    <div class="row">
+      <div><div class="label">Import a CSV from another bank</div><div class="desc">You'll pick which columns are date, description and amount</div></div>
+      <label class="action secondary" style="cursor:pointer;">Choose CSV
+        <input type="file" id="genericCsvInput" accept=".csv,text/csv" style="display:none;">
+      </label>
+    </div>
+
+    <h3 class="modal-section-title">🎨 Appearance</h3>
+    <div class="row">
+      <div><div class="label">Dark mode</div><div class="desc">Easier on the eyes at night</div></div>
+      <label class="switch"><input type="checkbox" id="darkModeToggle"><span class="slider"></span></label>
+    </div>
+    <div class="row">
+      <div><div class="label">Currency symbol</div><div class="desc">Shown next to your Budget &amp; Payslip totals</div></div>
+      <select class="small" id="primaryCurrencySelect">
+        <option value="£">£ GBP</option>
+        <option value="$">$ USD</option>
+        <option value="€">€ EUR</option>
+        <option value="N">₦ NGN</option>
+      </select>
+    </div>
 
     <h3 class="modal-section-title">🔒 Security</h3>
     <div class="row">
@@ -467,9 +550,9 @@
 <div class="modal-backdrop" id="importBackdrop">
   <div class="modal" style="max-width:640px;">
     <button class="close-x" id="closeImport">✕</button>
-    <h2>📥 Import Revolut transactions</h2>
+    <h2 id="importModalTitle">📥 Import transactions</h2>
     <p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 12px;">Check each row, adjust the category if needed, then add them into <b id="importMonthLabel"></b>. Nothing is saved until you tap "Add to budget".</p>
-    <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-soft);margin-bottom:10px;">
+    <label id="includeExchangesRow" style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-soft);margin-bottom:10px;">
       <input type="checkbox" id="includeExchanges"> include currency exchanges between your own wallets
     </label>
     <div id="importList" style="max-height:340px;overflow-y:auto;border-top:1px solid var(--line);"></div>
@@ -480,9 +563,48 @@
   </div>
 </div>
 
+<!-- GENERIC CSV COLUMN MAPPING MODAL -->
+<div class="modal-backdrop" id="mapBackdrop">
+  <div class="modal" style="max-width:520px;">
+    <button class="close-x" id="closeMap">✕</button>
+    <h2>🗂️ Match your columns</h2>
+    <p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 14px;">Tell me which column in your file is which — every bank's export is a little different.</p>
+    <div class="row" style="border-top:none;">
+      <div class="label">Date column</div>
+      <select class="small" id="mapDateCol"></select>
+    </div>
+    <div class="row">
+      <div class="label">Description column</div>
+      <select class="small" id="mapDescCol"></select>
+    </div>
+    <div class="row">
+      <div><div class="label">Amount layout</div><div class="desc">One signed column, or separate in/out columns</div></div>
+      <select class="small" id="mapAmountMode">
+        <option value="single">Single (+/−)</option>
+        <option value="split">Separate in/out</option>
+      </select>
+    </div>
+    <div class="row" id="mapAmountSingleRow">
+      <div class="label">Amount column</div>
+      <select class="small" id="mapAmountCol"></select>
+    </div>
+    <div class="row" id="mapAmountInRow" style="display:none;">
+      <div class="label">Money in column</div>
+      <select class="small" id="mapAmountInCol"></select>
+    </div>
+    <div class="row" id="mapAmountOutRow" style="display:none;">
+      <div class="label">Money out column</div>
+      <select class="small" id="mapAmountOutCol"></select>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:16px;">
+      <button class="action" id="confirmMapBtn">Continue</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const CUR_SYMBOLS = {N:'₦', '$':'$', '£':'£', '€':'€'};
-const APP_VERSION = '2026.08 · Payslip tracker + photo scan';
+const APP_VERSION = '2026.08 · Budgets, categories, liabilities, insights';
 const STORAGE_KEY = 'ledger-data-v2';
 const OLD_STORAGE_KEY = 'finance-data';
 
@@ -498,11 +620,12 @@ const DEFAULT_MONTH = () => ({
 });
 
 const DEFAULT_PAYSLIP = () => ({
-  taxCode:'', gross:0, tax:0, ni:0, pensionEmployee:0, pensionEmployer:0, studentLoan:0, otherDeductions:0, netPay:0
+  taxCode:'', gross:0, bonus:0, tax:0, ni:0, pensionEmployee:0, pensionEmployer:0, studentLoan:0, otherDeductions:0, netPay:0
 });
 const PAYSLIP_FIELDS = [
   {key:'taxCode', label:'Tax code', type:'text'},
   {key:'gross', label:'Gross pay', type:'money'},
+  {key:'bonus', label:'Bonus / overtime (included in gross above, if any)', type:'money'},
   {key:'tax', label:'Tax paid (PAYE)', type:'money'},
   {key:'ni', label:'National Insurance', type:'money'},
   {key:'pensionEmployee', label:'Pension (you)', type:'money'},
@@ -511,6 +634,19 @@ const PAYSLIP_FIELDS = [
   {key:'otherDeductions', label:'Other deductions', type:'money'},
   {key:'netPay', label:'Net pay (take-home)', type:'money'},
 ];
+const DEFAULT_TAX_SETTINGS = () => ({
+  personalAllowance: 12570, basicThreshold: 50270, higherThreshold: 125140, pensionAnnualAllowance: 60000
+});
+const PAY_FREQUENCY_MULTIPLIER = { monthly: 12, four_weekly: 13, weekly: 52 };
+const PAYSLIP_SETTINGS_FIELDS = [
+  {key:'payFrequency', label:'Pay frequency', type:'select', options:[['monthly','Monthly'],['four_weekly','Every 4 weeks'],['weekly','Weekly']]},
+  {key:'personalAllowance', label:'Personal Allowance (yearly)', type:'money'},
+  {key:'basicThreshold', label:'Basic rate upper threshold (yearly)', type:'money'},
+  {key:'higherThreshold', label:'Higher rate upper threshold (yearly)', type:'money'},
+  {key:'pensionAnnualAllowance', label:'Pension annual allowance (yearly)', type:'money'},
+];
+
+const EXPENSE_CATEGORIES = ['Housing','Utilities','Food','Transport','Debt','Subscriptions','Giving','Health','Personal','Other'];
 
 const DEFAULT_ASSETS = () => ([
   {label:'Revolut - Commodities', amount:0, cur:'$'}, {label:'Revolut - Crypto', amount:0, cur:'$'},
@@ -545,24 +681,43 @@ function monthLabel(key){
 }
 function sortedMonthKeys(){ return Object.keys(data.months).sort(); }
 
+function ensureRowDefaults(arr){
+  arr.forEach(r => {
+    if(r.recurring === undefined) r.recurring = false;
+    if(r.category === undefined) r.category = '';
+  });
+}
+
 function freshData(){
   const oldRaw = localStorage.getItem(OLD_STORAGE_KEY);
   const key = monthKeyNow();
   let d;
   if(oldRaw){
     const old = JSON.parse(oldRaw);
-    d = { months: { [key]: { income: old.income||[], expenses: old.expenses||[], savings: old.savings||[], payslip: DEFAULT_PAYSLIP() } },
-      currentMonthKey: key, assets: old.assets || DEFAULT_ASSETS(), assetSnapshots: [] };
+    d = { months: { [key]: { income: old.income||[], expenses: old.expenses||[], savings: old.savings||[], payslip: DEFAULT_PAYSLIP(), plannedIncome:0, plannedExpenses:0, plannedSavings:0 } },
+      currentMonthKey: key, assets: old.assets || DEFAULT_ASSETS(), assetSnapshots: [], liabilities: [], settings: { primaryCurrency:'£', payFrequency:'monthly', taxSettings: DEFAULT_TAX_SETTINGS() } };
   } else {
-    d = { months: { [key]: { ...DEFAULT_MONTH(), payslip: DEFAULT_PAYSLIP() } }, currentMonthKey: key, assets: DEFAULT_ASSETS(), assetSnapshots: [] };
+    d = { months: { [key]: { ...DEFAULT_MONTH(), payslip: DEFAULT_PAYSLIP(), plannedIncome:0, plannedExpenses:0, plannedSavings:0 } }, currentMonthKey: key, assets: DEFAULT_ASSETS(), assetSnapshots: [], liabilities: [], settings: { primaryCurrency:'£', payFrequency:'monthly', taxSettings: DEFAULT_TAX_SETTINGS() } };
   }
   return d;
 }
 function normalizeData(d){
   if(!d.assetSnapshots) d.assetSnapshots = [];
   if(!d.categoryRules) d.categoryRules = {};
-  Object.values(d.months).forEach(m => { ['income','expenses','savings'].forEach(k => ensureIds(m[k])); if(!m.payslip) m.payslip = DEFAULT_PAYSLIP(); });
+  if(!d.liabilities) d.liabilities = [];
+  if(!d.settings) d.settings = {};
+  if(!d.settings.primaryCurrency) d.settings.primaryCurrency = '£';
+  if(!d.settings.payFrequency) d.settings.payFrequency = 'monthly';
+  if(!d.settings.taxSettings) d.settings.taxSettings = DEFAULT_TAX_SETTINGS();
+  Object.values(d.months).forEach(m => {
+    ['income','expenses','savings'].forEach(k => { ensureIds(m[k]); ensureRowDefaults(m[k]); });
+    if(!m.payslip) m.payslip = DEFAULT_PAYSLIP();
+    if(m.plannedIncome === undefined) m.plannedIncome = 0;
+    if(m.plannedExpenses === undefined) m.plannedExpenses = 0;
+    if(m.plannedSavings === undefined) m.plannedSavings = 0;
+  });
   ensureIds(d.assets);
+  ensureIds(d.liabilities);
   return d;
 }
 
@@ -622,6 +777,7 @@ function loadLockConfig(){
 function saveLockConfig(){ localStorage.setItem(LOCK_CONFIG_KEY, JSON.stringify(lockConfig)); }
 
 function fmt(n){ n = Number(n)||0; return n.toLocaleString(undefined,{maximumFractionDigits:2}); }
+function curFmt(n){ return (data.settings.primaryCurrency||'') + fmt(n); }
 
 function sum(arr){ return arr.reduce((a,r)=>a + (Number(r.amount)||0), 0); }
 function currentMonth(){ return data.months[data.currentMonthKey]; }
@@ -653,16 +809,20 @@ document.getElementById('createMonthBtn').addEventListener('click', () => {
     const keys = sortedMonthKeys();
     const latest = keys.length ? data.months[keys[keys.length-1]] : null;
     if(latest){
+      const carry = (r) => ({ id:uid(), label:r.label, amount: r.recurring ? (Number(r.amount)||0) : 0, recurring: !!r.recurring, category: r.category||'' });
       data.months[val] = {
-        income: latest.income.map(r => ({id:uid(), label:r.label, amount:0})),
-        expenses: latest.expenses.map(r => ({id:uid(), label:r.label, amount:0})),
-        savings: latest.savings.map(r => ({id:uid(), label:r.label, amount:0})),
-        payslip: { ...DEFAULT_PAYSLIP(), taxCode: (latest.payslip && latest.payslip.taxCode) || '' }
+        income: latest.income.map(carry),
+        expenses: latest.expenses.map(carry),
+        savings: latest.savings.map(carry),
+        payslip: { ...DEFAULT_PAYSLIP(), taxCode: (latest.payslip && latest.payslip.taxCode) || '' },
+        plannedIncome: latest.plannedIncome||0, plannedExpenses: latest.plannedExpenses||0, plannedSavings: latest.plannedSavings||0
       };
     } else {
       data.months[val] = DEFAULT_MONTH();
       data.months[val].payslip = DEFAULT_PAYSLIP();
+      data.months[val].plannedIncome = 0; data.months[val].plannedExpenses = 0; data.months[val].plannedSavings = 0;
       ensureIds(data.months[val].income); ensureIds(data.months[val].expenses); ensureIds(data.months[val].savings);
+      ensureRowDefaults(data.months[val].income); ensureRowDefaults(data.months[val].expenses); ensureRowDefaults(data.months[val].savings);
     }
   }
   data.currentMonthKey = val;
@@ -677,46 +837,75 @@ function renderSimpleTable(key, tbodyId){
   if(arr.length === 0){ tbody.innerHTML = '<tr><td colspan="3" class="empty">nothing here yet</td></tr>'; return; }
   arr.forEach(row => {
     const tr = document.createElement('tr'); tr.className = 'row';
+    const categoryHtml = key === 'expenses' ? `
+      <select class="row-category" data-key="${key}" data-id="${row.id}" data-field="category">
+        <option value="">No category</option>
+        ${EXPENSE_CATEGORIES.map(c=>`<option value="${c}" ${row.category===c?'selected':''}>${c}</option>`).join('')}
+      </select>` : '';
+    tr.innerHTML = `
+      <td class="label">
+        <input type="text" value="${escapeAttr(row.label)}" data-key="${key}" data-id="${row.id}" data-field="label">
+        ${categoryHtml}
+      </td>
+      <td class="amount"><div class="amt-wrap"><input type="number" value="${row.amount}" data-key="${key}" data-id="${row.id}" data-field="amount" step="any"></div></td>
+      <td class="del">
+        <button class="recur-btn${row.recurring?' active':''}" data-recur="${key}" data-id="${row.id}" title="${row.recurring?'Recurring — carries its amount into new months':'Mark as recurring'}">🔁</button>
+        <button data-del="${key}" data-id="${row.id}" title="remove">✕</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+function renderCurrencyRows(arr, tbodyId, key, emptyLabel){
+  const tbody = document.getElementById(tbodyId);
+  tbody.innerHTML = '';
+  if(arr.length === 0){ tbody.innerHTML = `<tr><td colspan="3" class="empty">${emptyLabel}</td></tr>`; return; }
+  arr.forEach(row => {
+    const tr = document.createElement('tr'); tr.className = 'row';
+    const cur = row.cur || '$';
     tr.innerHTML = `
       <td class="label"><input type="text" value="${escapeAttr(row.label)}" data-key="${key}" data-id="${row.id}" data-field="label"></td>
-      <td class="amount"><div class="amt-wrap"><input type="number" value="${row.amount}" data-key="${key}" data-id="${row.id}" data-field="amount" step="any"></div></td>
+      <td class="amount"><div class="amt-wrap">
+        <select data-key="${key}" data-id="${row.id}" data-field="cur">
+          ${Object.keys(CUR_SYMBOLS).map(c=>`<option value="${c}" ${c===cur?'selected':''}>${c}</option>`).join('')}
+        </select>
+        <input type="number" value="${row.amount}" data-key="${key}" data-id="${row.id}" data-field="amount" step="any">
+      </div></td>
       <td class="del"><button data-del="${key}" data-id="${row.id}" title="remove">✕</button></td>
     `;
     tbody.appendChild(tr);
   });
 }
-function renderAssets(){
-  const tbody = document.getElementById('assetsBody');
-  tbody.innerHTML = '';
-  if(data.assets.length === 0){ tbody.innerHTML = '<tr><td colspan="4" class="empty">no accounts added yet</td></tr>'; return; }
-  data.assets.forEach(row => {
-    const tr = document.createElement('tr'); tr.className = 'row';
-    const cur = row.cur || '$';
-    tr.innerHTML = `
-      <td class="label"><input type="text" value="${escapeAttr(row.label)}" data-key="assets" data-id="${row.id}" data-field="label"></td>
-      <td class="amount"><div class="amt-wrap">
-        <select data-key="assets" data-id="${row.id}" data-field="cur">
-          ${Object.keys(CUR_SYMBOLS).map(c=>`<option value="${c}" ${c===cur?'selected':''}>${c}</option>`).join('')}
-        </select>
-        <input type="number" value="${row.amount}" data-key="assets" data-id="${row.id}" data-field="amount" step="any">
-      </div></td>
-      <td class="del"><button data-del="assets" data-id="${row.id}" title="remove">✕</button></td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
+function renderAssets(){ renderCurrencyRows(data.assets, 'assetsBody', 'assets', 'no accounts added yet'); }
+function renderLiabilities(){ renderCurrencyRows(data.liabilities, 'liabilitiesBody', 'liabilities', 'no liabilities added — nice, or just none tracked yet'); }
 function escapeAttr(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+
+function renderPlannedNote(section, actual, planned, elId, overWord, underWord){
+  const el = document.getElementById(elId);
+  planned = Number(planned)||0;
+  if(!planned){ el.textContent=''; return; }
+  const diff = actual - planned;
+  const word = diff > 0 ? overWord : underWord;
+  el.textContent = ` · planned ${fmt(planned)} (${fmt(Math.abs(diff))} ${word})`;
+}
 
 function renderTotals(){
   const m = currentMonth();
   const inc = sum(m.income), exp = sum(m.expenses), sav = sum(m.savings), bal = inc-exp-sav;
-  document.getElementById('incomeTotal').textContent = fmt(inc);
-  document.getElementById('expenseTotal').textContent = fmt(exp);
-  document.getElementById('savingsTotal').textContent = fmt(sav);
-  document.getElementById('balanceTotal').textContent = fmt(bal);
+  document.getElementById('incomeTotal').textContent = curFmt(inc);
+  document.getElementById('expenseTotal').textContent = curFmt(exp);
+  document.getElementById('savingsTotal').textContent = curFmt(sav);
+  document.getElementById('balanceTotal').textContent = curFmt(bal);
   document.getElementById('incomeMonthLabel').textContent = monthLabel(data.currentMonthKey);
   document.getElementById('balanceRow').className = 'card-total ' + (bal>=0?'pos':'neg');
+
+  document.getElementById('plannedIncomeInput').value = m.plannedIncome || '';
+  document.getElementById('plannedExpensesInput').value = m.plannedExpenses || '';
+  document.getElementById('plannedSavingsInput').value = m.plannedSavings || '';
+  renderPlannedNote('income', inc, m.plannedIncome, 'incomePlannedNote', 'above plan', 'below plan');
+  renderPlannedNote('expenses', exp, m.plannedExpenses, 'expensesPlannedNote', 'over', 'under');
+  renderPlannedNote('savings', sav, m.plannedSavings, 'savingsPlannedNote', 'above plan', 'below plan');
 }
 
 function renderOverview(){
@@ -733,6 +922,7 @@ function renderOverview(){
   `).join('');
 
   renderTips(m, inc, exp, sav, rate);
+  renderCategoryRanking(m);
 
   const cats = m.expenses.filter(r=>Number(r.amount)>0);
   const wrapEl = document.getElementById('expenseDoughnut').parentElement;
@@ -751,6 +941,36 @@ function renderOverview(){
       options:{ plugins:{ legend:{ position:'bottom', labels:{ boxWidth:12, font:{family:'Inter', size:11.5} } } }, cutout:'62%' }
     });
   }
+}
+
+function renderCategoryRanking(m){
+  const wrap = document.getElementById('categoryRankWrap');
+  if(!wrap) return;
+  const keys = sortedMonthKeys();
+  const idx = keys.indexOf(data.currentMonthKey);
+  const prevM = idx > 0 ? data.months[keys[idx-1]] : null;
+
+  const totals = {};
+  m.expenses.forEach(r => { const c = r.category || 'Uncategorized'; totals[c] = (totals[c]||0) + (Number(r.amount)||0); });
+  const prevTotals = {};
+  if(prevM) prevM.expenses.forEach(r => { const c = r.category || 'Uncategorized'; prevTotals[c] = (prevTotals[c]||0) + (Number(r.amount)||0); });
+
+  const ranked = Object.entries(totals).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+  if(ranked.length === 0){
+    wrap.innerHTML = '<div class="empty">tag your expense lines with a category to see them ranked here</div>';
+    return;
+  }
+  wrap.innerHTML = ranked.map(([cat, v]) => {
+    const prevV = prevTotals[cat] || 0;
+    let chgHtml = '';
+    if(prevM && prevV > 0){
+      const pct = ((v - prevV) / prevV) * 100;
+      if(Math.abs(pct) >= 1){
+        chgHtml = `<span class="chg ${pct>0?'up':'down'}">${pct>0?'▲':'▼'} ${Math.abs(pct).toFixed(0)}%</span>`;
+      }
+    }
+    return `<div class="cat-rank-row"><span>${escapeHtml(cat)}</span><span class="amt">${fmt(v)}${chgHtml}</span></div>`;
+  }).join('');
 }
 
 function renderTips(m, inc, exp, sav, rate){
@@ -801,14 +1021,37 @@ function currentAssetTotals(){
   data.assets.forEach(r => { const c=r.cur||'$'; totals[c]=(totals[c]||0)+(Number(r.amount)||0); });
   return totals;
 }
+function currentLiabilityTotals(){
+  const totals = {};
+  data.liabilities.forEach(r => { const c=r.cur||'$'; totals[c]=(totals[c]||0)+(Number(r.amount)||0); });
+  return totals;
+}
+function currentNetWorthTotals(){
+  const assetT = currentAssetTotals(), liabT = currentLiabilityTotals();
+  const currencies = new Set([...Object.keys(assetT), ...Object.keys(liabT)]);
+  const net = {};
+  currencies.forEach(c => { net[c] = (assetT[c]||0) - (liabT[c]||0); });
+  return net;
+}
 document.getElementById('snapshotBtn').addEventListener('click', () => {
-  const totals = currentAssetTotals();
+  const totals = currentNetWorthTotals();
   data.assetSnapshots.push({ date: new Date().toISOString().slice(0,10), totals });
   data.assetSnapshots.sort((a,b)=> a.date.localeCompare(b.date));
   scheduleSave(); renderAssetsPanel();
 });
 function renderAssetsPanel(){
   renderAssets();
+  renderLiabilities();
+  const netList = document.getElementById('netWorthNowList');
+  const net = currentNetWorthTotals();
+  const entries = Object.entries(net);
+  if(entries.length === 0){
+    netList.innerHTML = '<div class="empty">add an account (or a liability) to see your net worth here</div>';
+  } else {
+    netList.innerHTML = entries.map(([c,v]) => `
+      <div class="snap-row"><span>${CUR_SYMBOLS[c]||''} ${c}</span><span>${CUR_SYMBOLS[c]||''}${fmt(v)}</span></div>
+    `).join('');
+  }
   const list = document.getElementById('snapList');
   if(data.assetSnapshots.length === 0){
     list.innerHTML = '<div class="empty">no snapshots yet — tap "Save snapshot" above whenever you want to log a net-worth point in time</div>';
@@ -844,10 +1087,10 @@ function renderPayslipStats(){
   const effTaxRate = gross>0 ? (tax/gross*100) : 0;
   const takeHomePct = gross>0 ? (netPay/gross*100) : 0;
   const stats = [
-    {k:'Gross pay', v:fmt(gross), cls:'gold'},
-    {k:'Tax paid', v:fmt(tax), cls:'neg'},
-    {k:'National Insurance', v:fmt(ni), cls:'neg'},
-    {k:'Net pay', v:fmt(netPay), cls:'pos'},
+    {k:'Gross pay', v:curFmt(gross), cls:'gold'},
+    {k:'Tax paid', v:curFmt(tax), cls:'neg'},
+    {k:'National Insurance', v:curFmt(ni), cls:'neg'},
+    {k:'Net pay', v:curFmt(netPay), cls:'pos'},
     {k:'Effective tax rate', v:effTaxRate.toFixed(1)+'%', cls:'gold'},
     {k:'Take-home %', v:takeHomePct.toFixed(1)+'%', cls:takeHomePct>=70?'pos':'gold'},
   ];
@@ -945,12 +1188,78 @@ function renderPayslipTrend(){
   });
 }
 
+function renderPayslipSettingsForm(){
+  const ts = data.settings.taxSettings;
+  const tbody = document.getElementById('payslipSettingsBody');
+  tbody.innerHTML = PAYSLIP_SETTINGS_FIELDS.map(f => {
+    let control;
+    if(f.type === 'select'){
+      control = `<select data-key="payslipSettings" data-field="${f.key}">
+        ${f.options.map(([v,l]) => `<option value="${v}" ${data.settings.payFrequency===v?'selected':''}>${l}</option>`).join('')}
+      </select>`;
+    } else {
+      control = `<input type="number" value="${ts[f.key]}" data-key="payslipSettings" data-field="${f.key}" step="any">`;
+    }
+    return `<tr class="row"><td class="label">${f.label}</td><td class="amount"><div class="amt-wrap">${control}</div></td></tr>`;
+  }).join('');
+}
+
+function renderPayslipInsights(){
+  const wrap = document.getElementById('payslipInsightsWrap');
+  const p = ensurePayslip(currentMonth());
+  const ts = data.settings.taxSettings;
+  const mult = PAY_FREQUENCY_MULTIPLIER[data.settings.payFrequency] || 12;
+  const gross = Number(p.gross)||0, tax = Number(p.tax)||0, pensionEmployee = Number(p.pensionEmployee)||0, ni = Number(p.ni)||0;
+
+  if(gross === 0){
+    wrap.innerHTML = '<div class="empty">enter this month\'s gross pay above to see how it lines up against the thresholds you\'ve set</div>';
+    return;
+  }
+
+  const annualGross = gross * mult;
+  const annualPension = pensionEmployee * mult;
+  const taxableIncome = Math.max(0, annualGross - annualPension);
+  const items = [];
+
+  let band = 'within your Personal Allowance (little or no Income Tax due on this portion)';
+  if(taxableIncome > ts.higherThreshold) band = 'in the additional rate band, based on the higher rate threshold you\'ve set';
+  else if(taxableIncome > ts.basicThreshold) band = 'in the higher rate band, based on the thresholds you\'ve set';
+  else if(taxableIncome > ts.personalAllowance) band = 'in the basic rate band, based on the thresholds you\'ve set';
+  items.push(`Annualizing this month's gross pay (${data.settings.payFrequency.replace('_',' ')}, so ×${mult}) gives roughly <b>${fmt(annualGross)}</b> a year${annualPension>0?`, or <b>${fmt(taxableIncome)}</b> after your pension contribution`:''}. On the figures you've entered, that would put you ${band}.`);
+
+  if(annualGross > 100000){
+    items.push(`Earnings above £100,000 a year start to taper away the Personal Allowance itself (£1 lost for every £2 over) under current rules — worth checking whether that applies here, since it isn't reflected in the band comparison above.`);
+  }
+
+  if(gross > 0 && pensionEmployee === 0){
+    items.push(`No pension contribution is logged this month. If you do contribute (directly or via salary sacrifice) but haven't entered it above, adding it will make the band comparison and take-home figures more accurate.`);
+  }
+
+  if(ts.pensionAnnualAllowance > 0){
+    const annualPensionTotal = (Number(p.pensionEmployee)||0) * mult + (Number(p.pensionEmployer)||0) * mult;
+    const headroom = ts.pensionAnnualAllowance - annualPensionTotal;
+    items.push(`At this month's rate, your combined pension contributions (you + employer) annualize to roughly <b>${fmt(annualPensionTotal)}</b>, leaving about <b>${fmt(Math.max(0,headroom))}</b> of headroom against the ${fmt(ts.pensionAnnualAllowance)} annual allowance you've set${headroom<0?' — you may already be over it, which can trigger a tax charge, so worth checking with HMRC or an adviser.':'.'}`);
+  }
+
+  const takeHomePct = gross>0 ? ((Number(p.netPay)||0)/gross*100) : 0;
+  if(takeHomePct > 0){
+    items.push(`Net pay works out to about <b>${takeHomePct.toFixed(0)}%</b> of gross this month, once tax, NI and the deductions you've entered are taken off.`);
+  }
+
+  wrap.innerHTML = `
+    <div>${items.map(t=>`<div class="tip-card"><div class="emoji">📊</div><div class="txt">${t}</div></div>`).join('')}</div>
+    <div class="tips-note">Calculated directly from the numbers and thresholds you've entered above — not a tax return or professional advice, and it doesn't know about other income, allowances, or reliefs you may have. For anything that affects what you owe or claim, check gov.uk or an accountant.</div>
+  `;
+}
+
 function renderPayslip(){
   ensurePayslip(currentMonth());
   renderPayslipForm();
+  renderPayslipSettingsForm();
   renderPayslipStats();
   renderPayslipTips();
   renderPayslipInfo();
+  renderPayslipInsights();
   renderPayslipTrend();
 }
 
@@ -1116,33 +1425,58 @@ document.addEventListener('input', (e) => {
     const p = ensurePayslip(currentMonth());
     const field = t.dataset.field;
     p[field] = field === 'taxCode' ? t.value : (t.value===''?0:Number(t.value));
-    renderPayslipStats(); renderPayslipTips(); renderPayslipTrend();
+    renderPayslipStats(); renderPayslipTips(); renderPayslipTrend(); renderPayslipInsights();
+    scheduleSave();
+    return;
+  }
+  if(t.dataset && t.dataset.key === 'payslipSettings' && t.dataset.field){
+    const field = t.dataset.field;
+    if(field === 'payFrequency'){ data.settings.payFrequency = t.value; }
+    else { data.settings.taxSettings[field] = t.value===''?0:Number(t.value); }
+    renderPayslipInsights();
     scheduleSave();
     return;
   }
   if(t.dataset && t.dataset.key && t.dataset.id && t.dataset.field){
-    const arr = t.dataset.key === 'assets' ? data.assets : currentMonth()[t.dataset.key];
+    const arr = t.dataset.key === 'assets' ? data.assets : (t.dataset.key === 'liabilities' ? data.liabilities : currentMonth()[t.dataset.key]);
     const row = arr.find(r => r.id === t.dataset.id);
     if(!row) return;
     row[t.dataset.field] = t.dataset.field === 'amount' ? (t.value===''?0:Number(t.value)) : t.value;
+    if(t.dataset.field === 'category'){ renderCategoryRanking(currentMonth()); }
     renderTotals(); renderOverview();
     scheduleSave();
   }
 });
+
+document.getElementById('plannedIncomeInput').addEventListener('input', (e)=>{ currentMonth().plannedIncome = e.target.value===''?0:Number(e.target.value); renderTotals(); scheduleSave(); });
+document.getElementById('plannedExpensesInput').addEventListener('input', (e)=>{ currentMonth().plannedExpenses = e.target.value===''?0:Number(e.target.value); renderTotals(); scheduleSave(); });
+document.getElementById('plannedSavingsInput').addEventListener('input', (e)=>{ currentMonth().plannedSavings = e.target.value===''?0:Number(e.target.value); renderTotals(); scheduleSave(); });
 
 document.addEventListener('click', (e) => {
   const addKey = e.target.closest('[data-add]')?.dataset.add;
   if(addKey){
     const newRow = {id:uid(), label:'New item', amount:0};
     if(addKey === 'assets'){ newRow.cur='$'; data.assets.push(newRow); renderAssetsPanel(); }
-    else { currentMonth()[addKey].push(newRow); renderSimpleTable(addKey, addKey+'Body'); renderTotals(); renderOverview(); }
+    else if(addKey === 'liabilities'){ newRow.cur='$'; data.liabilities.push(newRow); renderAssetsPanel(); }
+    else {
+      newRow.recurring = false; newRow.category = '';
+      currentMonth()[addKey].push(newRow); renderSimpleTable(addKey, addKey+'Body'); renderTotals(); renderOverview();
+    }
     scheduleSave();
+    return;
+  }
+  const recurBtn = e.target.closest('[data-recur]');
+  if(recurBtn){
+    const key = recurBtn.dataset.recur, id = recurBtn.dataset.id;
+    const row = currentMonth()[key].find(r => r.id === id);
+    if(row){ row.recurring = !row.recurring; renderSimpleTable(key, key+'Body'); scheduleSave(); }
     return;
   }
   const delBtn = e.target.closest('[data-del]');
   if(delBtn){
     const key = delBtn.dataset.del, id = delBtn.dataset.id;
     if(key === 'assets'){ data.assets = data.assets.filter(r=>r.id!==id); renderAssetsPanel(); }
+    else if(key === 'liabilities'){ data.liabilities = data.liabilities.filter(r=>r.id!==id); renderAssetsPanel(); }
     else { currentMonth()[key] = currentMonth()[key].filter(r=>r.id!==id); renderSimpleTable(key, key+'Body'); renderTotals(); renderOverview(); }
     scheduleSave();
   }
@@ -1207,14 +1541,23 @@ document.getElementById('importInput').addEventListener('change', (e) => {
 });
 
 document.getElementById('csvBtn').addEventListener('click', () => {
-  const rows = [['Month','Section','Label','Amount']];
+  const rows = [['Month','Section','Label','Category','Recurring','Amount']];
   sortedMonthKeys().forEach(k => {
     const m = data.months[k];
-    ['income','expenses','savings'].forEach(section => { m[section].forEach(r => rows.push([monthLabel(k), section, r.label, r.amount])); });
+    ['income','expenses','savings'].forEach(section => { m[section].forEach(r => rows.push([monthLabel(k), section, r.label, r.category||'', r.recurring?'yes':'no', r.amount])); });
+  });
+  rows.push([]);
+  rows.push(['Month','Planned income','Planned expenses','Planned savings']);
+  sortedMonthKeys().forEach(k => {
+    const m = data.months[k];
+    rows.push([monthLabel(k), m.plannedIncome||0, m.plannedExpenses||0, m.plannedSavings||0]);
   });
   rows.push([]);
   rows.push(['Account','Currency','Amount']);
   data.assets.forEach(r => rows.push([r.label, r.cur, r.amount]));
+  rows.push([]);
+  rows.push(['Liability','Currency','Amount']);
+  data.liabilities.forEach(r => rows.push([r.label, r.cur, r.amount]));
   rows.push([]);
   rows.push(['Month','Payslip field','Value']);
   sortedMonthKeys().forEach(k => {
@@ -1230,18 +1573,32 @@ document.getElementById('csvBtn').addEventListener('click', () => {
 document.getElementById('reportBtn').addEventListener('click', () => {
   const m = currentMonth();
   const inc = sum(m.income), exp = sum(m.expenses), sav = sum(m.savings), bal = inc-exp-sav;
-  const rowsHtml = (arr) => arr.map(r => `<tr><td>${escapeHtml(r.label)}</td><td class="amt">${fmt(r.amount)}</td></tr>`).join('');
+  const rowsHtml = (arr, withCat) => arr.map(r => `<tr><td>${escapeHtml(r.label)}${withCat && r.category ? ' <span style="color:#888;font-size:11px;">('+escapeHtml(r.category)+')</span>' : ''}${r.recurring?' 🔁':''}</td><td class="amt">${curFmt(r.amount)}</td></tr>`).join('');
+  const plannedLine = (planned, actual) => {
+    planned = Number(planned)||0;
+    if(!planned) return '';
+    return `<tr><td>Planned</td><td class="amt">${curFmt(planned)} (${curFmt(Math.abs(actual-planned))} ${actual>planned?'over':'under'})</td></tr>`;
+  };
+  const net = currentNetWorthTotals();
+  const netRows = Object.entries(net).map(([c,v]) => `<tr><td>${c}</td><td class="amt">${CUR_SYMBOLS[c]||''}${fmt(v)}</td></tr>`).join('');
+  const p = m.payslip;
+  const payslipSection = p && Number(p.gross) > 0 ? `
+    <h3>Payslip</h3>
+    <table><tr><th>Item</th><th class="amt">Value</th></tr>${PAYSLIP_FIELDS.map(f=>`<tr><td>${f.label}</td><td class="amt">${f.type==='text'?escapeHtml(p[f.key]||''):curFmt(p[f.key])}</td></tr>`).join('')}</table>
+  ` : '';
   document.getElementById('printReport').innerHTML = `
     <h1>Ledger — ${monthLabel(data.currentMonthKey)}</h1>
     <p>Generated ${new Date().toLocaleDateString()}</p>
     <h3>Income</h3>
-    <table><tr><th>Item</th><th class="amt">Amount</th></tr>${rowsHtml(m.income)}<tr class="totalrow"><td>Total</td><td class="amt">${fmt(inc)}</td></tr></table>
+    <table><tr><th>Item</th><th class="amt">Amount</th></tr>${rowsHtml(m.income,false)}<tr class="totalrow"><td>Total</td><td class="amt">${curFmt(inc)}</td></tr>${plannedLine(m.plannedIncome, inc)}</table>
     <h3>Expenses</h3>
-    <table><tr><th>Item</th><th class="amt">Amount</th></tr>${rowsHtml(m.expenses)}<tr class="totalrow"><td>Total</td><td class="amt">${fmt(exp)}</td></tr></table>
+    <table><tr><th>Item</th><th class="amt">Amount</th></tr>${rowsHtml(m.expenses,true)}<tr class="totalrow"><td>Total</td><td class="amt">${curFmt(exp)}</td></tr>${plannedLine(m.plannedExpenses, exp)}</table>
     <h3>Savings</h3>
-    <table><tr><th>Item</th><th class="amt">Amount</th></tr>${rowsHtml(m.savings)}<tr class="totalrow"><td>Total</td><td class="amt">${fmt(sav)}</td></tr></table>
+    <table><tr><th>Item</th><th class="amt">Amount</th></tr>${rowsHtml(m.savings,false)}<tr class="totalrow"><td>Total</td><td class="amt">${curFmt(sav)}</td></tr>${plannedLine(m.plannedSavings, sav)}</table>
     <h3>Balance</h3>
-    <table><tr class="totalrow"><td>Left over</td><td class="amt">${fmt(bal)}</td></tr></table>
+    <table><tr class="totalrow"><td>Left over</td><td class="amt">${curFmt(bal)}</td></tr></table>
+    ${netRows ? `<h3>Net worth (assets − liabilities)</h3><table><tr><th>Currency</th><th class="amt">Net</th></tr>${netRows}</table>` : ''}
+    ${payslipSection}
   `;
   window.print();
 });
@@ -1357,6 +1714,9 @@ document.getElementById('revolutInput').addEventListener('change', (e) => {
 
       pendingImportRows = parsed;
       document.getElementById('importMonthLabel').textContent = monthLabel(data.currentMonthKey);
+      document.getElementById('importModalTitle').textContent = '📥 Import Revolut transactions';
+      document.getElementById('includeExchangesRow').style.display = 'flex';
+      document.getElementById('includeExchanges').checked = false;
       renderImportList();
       document.getElementById('settingsBackdrop').classList.remove('show');
       document.getElementById('importBackdrop').classList.add('show');
@@ -1366,6 +1726,79 @@ document.getElementById('revolutInput').addEventListener('change', (e) => {
   };
   reader.readAsText(file);
   e.target.value = '';
+});
+
+/* ---------- generic bank CSV import (user maps the columns) ---------- */
+let genericCsvRows = null; // {header:[...], rows:[[...],...]}
+document.getElementById('genericCsvInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const rows = parseCSV(reader.result);
+      if(rows.length < 2){ alert('That file looks empty.'); return; }
+      genericCsvRows = { header: rows[0], rows: rows.slice(1).filter(r => r.length > 1) };
+      const opts = genericCsvRows.header.map((h,i) => `<option value="${i}">${escapeHtml(h || 'Column '+(i+1))}</option>`).join('');
+      ['mapDateCol','mapDescCol','mapAmountCol','mapAmountInCol','mapAmountOutCol'].forEach(id => {
+        document.getElementById(id).innerHTML = opts;
+      });
+      document.getElementById('mapAmountMode').value = 'single';
+      document.getElementById('mapAmountSingleRow').style.display = 'flex';
+      document.getElementById('mapAmountInRow').style.display = 'none';
+      document.getElementById('mapAmountOutRow').style.display = 'none';
+      document.getElementById('settingsBackdrop').classList.remove('show');
+      document.getElementById('mapBackdrop').classList.add('show');
+    }catch(err){
+      alert('That file could not be read as a CSV.');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+document.getElementById('mapAmountMode').addEventListener('change', (e) => {
+  const split = e.target.value === 'split';
+  document.getElementById('mapAmountSingleRow').style.display = split ? 'none' : 'flex';
+  document.getElementById('mapAmountInRow').style.display = split ? 'flex' : 'none';
+  document.getElementById('mapAmountOutRow').style.display = split ? 'flex' : 'none';
+});
+document.getElementById('closeMap').addEventListener('click', () => document.getElementById('mapBackdrop').classList.remove('show'));
+document.getElementById('confirmMapBtn').addEventListener('click', () => {
+  if(!genericCsvRows) return;
+  const iDate = Number(document.getElementById('mapDateCol').value);
+  const iDesc = Number(document.getElementById('mapDescCol').value);
+  const split = document.getElementById('mapAmountMode').value === 'split';
+  const parseAmount = (v) => {
+    if(v === undefined || v === null || v === '') return 0;
+    const cleaned = String(v).replace(/[^0-9.\-]/g, '');
+    const n = parseFloat(cleaned);
+    return isNaN(n) ? 0 : n;
+  };
+  let parsed;
+  if(split){
+    const iIn = Number(document.getElementById('mapAmountInCol').value);
+    const iOut = Number(document.getElementById('mapAmountOutCol').value);
+    parsed = genericCsvRows.rows.map(r => ({
+      type:'', description:(r[iDesc]||'').trim(), fee:0, state:'',
+      amount: parseAmount(r[iIn]) - Math.abs(parseAmount(r[iOut])),
+      date: (r[iDate]||'').slice(0,10)
+    }));
+  } else {
+    const iAmt = Number(document.getElementById('mapAmountCol').value);
+    parsed = genericCsvRows.rows.map(r => ({
+      type:'', description:(r[iDesc]||'').trim(), fee:0, state:'',
+      amount: parseAmount(r[iAmt]),
+      date: (r[iDate]||'').slice(0,10)
+    }));
+  }
+  pendingImportRows = parsed;
+  document.getElementById('importMonthLabel').textContent = monthLabel(data.currentMonthKey);
+  document.getElementById('importModalTitle').textContent = '📥 Import transactions';
+  document.getElementById('includeExchangesRow').style.display = 'none';
+  document.getElementById('includeExchanges').checked = false;
+  renderImportList();
+  document.getElementById('mapBackdrop').classList.remove('show');
+  document.getElementById('importBackdrop').classList.add('show');
 });
 
 function renderImportList(){
@@ -1622,6 +2055,8 @@ function syncSettingsUI(){
   document.getElementById('changePinRow').style.display = lockConfig.enabled ? 'flex' : 'none';
   document.getElementById('faceIdToggle').checked = lockConfig.faceIdEnabled;
   document.getElementById('autoLockSelect').value = String(lockConfig.autoLockMinutes || 0);
+  document.getElementById('darkModeToggle').checked = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.getElementById('primaryCurrencySelect').value = (data && data.settings && data.settings.primaryCurrency) || '£';
 }
 document.getElementById('settingsBtn').addEventListener('click', async () => {
   syncSettingsUI();
@@ -1631,6 +2066,25 @@ document.getElementById('settingsBtn').addEventListener('click', async () => {
   document.getElementById('settingsBackdrop').classList.add('show');
 });
 document.getElementById('closeSettings').addEventListener('click', () => document.getElementById('settingsBackdrop').classList.remove('show'));
+
+const THEME_KEY = 'ledger-theme';
+function applyTheme(theme){
+  if(theme === 'dark'){ document.documentElement.setAttribute('data-theme','dark'); }
+  else { document.documentElement.removeAttribute('data-theme'); }
+}
+function initTheme(){
+  applyTheme(localStorage.getItem(THEME_KEY) || 'light');
+}
+document.getElementById('darkModeToggle').addEventListener('change', (e) => {
+  const theme = e.target.checked ? 'dark' : 'light';
+  applyTheme(theme);
+  localStorage.setItem(THEME_KEY, theme);
+});
+document.getElementById('primaryCurrencySelect').addEventListener('change', (e) => {
+  data.settings.primaryCurrency = e.target.value;
+  renderTotals(); renderPayslipStats();
+  scheduleSave();
+});
 document.getElementById('lockToggle').addEventListener('change', async (e) => {
   if(e.target.checked){
     document.getElementById('settingsBackdrop').classList.remove('show');
@@ -1663,6 +2117,7 @@ document.getElementById('changePinBtn').addEventListener('click', () => {
 });
 
 /* ---------- startup ---------- */
+initTheme();
 renderPinPad();
 loadLockConfig();
 if(lockConfig.enabled){
