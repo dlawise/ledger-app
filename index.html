@@ -174,6 +174,9 @@
   .stat .v.pos{color:var(--teal-dark);}
   .stat .v.neg{color:#C0432E;}
   .stat .v.gold{color:#9c7419;}
+  .stat .chg{font-size:11px;margin-top:4px;font-weight:600;}
+  .stat .chg.up{color:#C0432E;}
+  .stat .chg.down{color:var(--teal-dark);}
 
   .tip-card{
     display:flex;gap:12px;background:var(--card);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow);
@@ -376,6 +379,10 @@
 
   <div class="panel" id="panel-payslip">
     <div class="stat-grid" id="payslipStatGrid"></div>
+    <div class="card">
+      <div class="card-head"><h2>Year to date</h2><span class="eyebrow">UK tax year, since 6 April</span></div>
+      <div class="stat-grid" id="payslipYtdStatGrid" style="padding:0 18px 18px;margin:0;"></div>
+    </div>
     <div id="payslipTipsWrap"></div>
 
     <div class="card">
@@ -391,7 +398,11 @@
     </div>
 
     <div class="card">
-      <div class="card-head"><h2>🧾 Payslip</h2><span class="eyebrow" id="payslipMonthLabel"></span></div>
+      <div class="card-head">
+        <h2>🧾 Payslip</h2>
+        <span class="eyebrow" id="payslipMonthLabel"></span>
+        <button id="addNetPayBtn" style="background:var(--teal);color:#fff;border:none;border-radius:9px;padding:7px 12px;font-size:12.5px;font-weight:600;cursor:pointer;">💵 Add net pay to Income</button>
+      </div>
       <table><tbody id="payslipBody"></tbody></table>
     </div>
 
@@ -443,8 +454,12 @@
 
   <div class="panel" id="panel-trends">
     <div class="card">
-      <div class="card-head"><h2>📈 Income, expenses &amp; savings</h2><span class="eyebrow">Across recorded months</span></div>
+      <div class="card-head"><h2>📈 Income, expenses &amp; savings</h2><span class="eyebrow">Annualized gross pay overlaid, right axis</span></div>
       <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>📊 Spending by category</h2><span class="eyebrow">Over time</span></div>
+      <div class="chart-wrap"><canvas id="categoryTrendChart"></canvas></div>
     </div>
     <div class="card">
       <div class="card-head"><h2>💰 Net worth</h2><span class="eyebrow">From your saved snapshots</span></div>
@@ -503,6 +518,12 @@
       <label class="action secondary" style="cursor:pointer;">Choose CSV
         <input type="file" id="genericCsvInput" accept=".csv,text/csv" style="display:none;">
       </label>
+    </div>
+
+    <h3 class="modal-section-title">🧮 Budget preferences</h3>
+    <div class="row">
+      <div><div class="label">Show recurring markers</div><div class="desc">Adds a 🔁 you can tap per line to carry its amount into new months</div></div>
+      <label class="switch"><input type="checkbox" id="showRecurringToggle"><span class="slider"></span></label>
     </div>
 
     <h3 class="modal-section-title">🎨 Appearance</h3>
@@ -604,7 +625,7 @@
 
 <script>
 const CUR_SYMBOLS = {N:'₦', '$':'$', '£':'£', '€':'€'};
-const APP_VERSION = '2026.08 · Budgets, categories, liabilities, insights';
+const APP_VERSION = '2026.08 · Net worth tile, category & payslip trends';
 const STORAGE_KEY = 'ledger-data-v2';
 const OLD_STORAGE_KEY = 'finance-data';
 
@@ -620,9 +641,10 @@ const DEFAULT_MONTH = () => ({
 });
 
 const DEFAULT_PAYSLIP = () => ({
-  taxCode:'', gross:0, bonus:0, tax:0, ni:0, pensionEmployee:0, pensionEmployer:0, studentLoan:0, otherDeductions:0, netPay:0
+  taxCode:'', employer:'', gross:0, bonus:0, tax:0, ni:0, pensionEmployee:0, pensionEmployer:0, studentLoan:0, otherDeductions:0, netPay:0
 });
 const PAYSLIP_FIELDS = [
+  {key:'employer', label:'Employer / job', type:'text'},
   {key:'taxCode', label:'Tax code', type:'text'},
   {key:'gross', label:'Gross pay', type:'money'},
   {key:'bonus', label:'Bonus / overtime (included in gross above, if any)', type:'money'},
@@ -661,7 +683,7 @@ const DEFAULT_ASSETS = () => ([
 
 let data = null;
 let saveTimer = null;
-let doughnutChart = null, trendChart = null, netWorthChart = null;
+let doughnutChart = null, trendChart = null, netWorthChart = null, categoryTrendChart = null;
 
 const LOCK_CONFIG_KEY = 'ledger-lock-config';
 const VAULT_KEY = 'ledger-vault-v1';
@@ -695,9 +717,9 @@ function freshData(){
   if(oldRaw){
     const old = JSON.parse(oldRaw);
     d = { months: { [key]: { income: old.income||[], expenses: old.expenses||[], savings: old.savings||[], payslip: DEFAULT_PAYSLIP(), plannedIncome:0, plannedExpenses:0, plannedSavings:0 } },
-      currentMonthKey: key, assets: old.assets || DEFAULT_ASSETS(), assetSnapshots: [], liabilities: [], settings: { primaryCurrency:'£', payFrequency:'monthly', taxSettings: DEFAULT_TAX_SETTINGS() } };
+      currentMonthKey: key, assets: old.assets || DEFAULT_ASSETS(), assetSnapshots: [], liabilities: [], settings: { primaryCurrency:'£', payFrequency:'monthly', showRecurring:false, taxSettings: DEFAULT_TAX_SETTINGS() } };
   } else {
-    d = { months: { [key]: { ...DEFAULT_MONTH(), payslip: DEFAULT_PAYSLIP(), plannedIncome:0, plannedExpenses:0, plannedSavings:0 } }, currentMonthKey: key, assets: DEFAULT_ASSETS(), assetSnapshots: [], liabilities: [], settings: { primaryCurrency:'£', payFrequency:'monthly', taxSettings: DEFAULT_TAX_SETTINGS() } };
+    d = { months: { [key]: { ...DEFAULT_MONTH(), payslip: DEFAULT_PAYSLIP(), plannedIncome:0, plannedExpenses:0, plannedSavings:0 } }, currentMonthKey: key, assets: DEFAULT_ASSETS(), assetSnapshots: [], liabilities: [], settings: { primaryCurrency:'£', payFrequency:'monthly', showRecurring:false, taxSettings: DEFAULT_TAX_SETTINGS() } };
   }
   return d;
 }
@@ -708,6 +730,7 @@ function normalizeData(d){
   if(!d.settings) d.settings = {};
   if(!d.settings.primaryCurrency) d.settings.primaryCurrency = '£';
   if(!d.settings.payFrequency) d.settings.payFrequency = 'monthly';
+  if(d.settings.showRecurring === undefined) d.settings.showRecurring = false;
   if(!d.settings.taxSettings) d.settings.taxSettings = DEFAULT_TAX_SETTINGS();
   Object.values(d.months).forEach(m => {
     ['income','expenses','savings'].forEach(k => { ensureIds(m[k]); ensureRowDefaults(m[k]); });
@@ -849,7 +872,7 @@ function renderSimpleTable(key, tbodyId){
       </td>
       <td class="amount"><div class="amt-wrap"><input type="number" value="${row.amount}" data-key="${key}" data-id="${row.id}" data-field="amount" step="any"></div></td>
       <td class="del">
-        <button class="recur-btn${row.recurring?' active':''}" data-recur="${key}" data-id="${row.id}" title="${row.recurring?'Recurring — carries its amount into new months':'Mark as recurring'}">🔁</button>
+        ${data.settings.showRecurring ? `<button class="recur-btn${row.recurring?' active':''}" data-recur="${key}" data-id="${row.id}" title="${row.recurring?'Recurring — carries its amount into new months':'Mark as recurring'}">🔁</button>` : ''}
         <button data-del="${key}" data-id="${row.id}" title="remove">✕</button>
       </td>
     `;
@@ -908,6 +931,15 @@ function renderTotals(){
   renderPlannedNote('savings', sav, m.plannedSavings, 'savingsPlannedNote', 'above plan', 'below plan');
 }
 
+function primaryNetWorth(){
+  const net = currentNetWorthTotals();
+  const pc = data.settings.primaryCurrency;
+  if(net[pc] !== undefined) return {cur:pc, val:net[pc]};
+  const entries = Object.entries(net);
+  if(entries.length===0) return null;
+  return {cur:entries[0][0], val:entries[0][1]};
+}
+
 function renderOverview(){
   const m = currentMonth();
   const inc = sum(m.income), exp = sum(m.expenses), sav = sum(m.savings), bal = inc-exp-sav;
@@ -917,6 +949,10 @@ function renderOverview(){
     {k:'Savings', v:fmt(sav), cls:'pos'}, {k:'Left over', v:fmt(bal), cls:bal>=0?'pos':'neg'},
     {k:'Savings rate', v:rate.toFixed(1)+'%', cls:rate>=15?'pos':'gold'},
   ];
+  const nw = primaryNetWorth();
+  if(nw){
+    stats.push({k:'Net worth', v:(CUR_SYMBOLS[nw.cur]||'')+fmt(nw.val), cls:nw.val>=0?'pos':'neg'});
+  }
   document.getElementById('statGrid').innerHTML = stats.map(s=>`
     <div class="stat"><div class="k">${s.k}</div><div class="v ${s.cls}">${s.v}</div></div>
   `).join('');
@@ -1071,7 +1107,7 @@ function ensurePayslip(m){
 function renderPayslipForm(){
   const m = currentMonth();
   const p = ensurePayslip(m);
-  document.getElementById('payslipMonthLabel').textContent = monthLabel(data.currentMonthKey);
+  document.getElementById('payslipMonthLabel').textContent = monthLabel(data.currentMonthKey) + (p.employer ? ' · ' + p.employer : '');
   const tbody = document.getElementById('payslipBody');
   tbody.innerHTML = PAYSLIP_FIELDS.map(f => `
     <tr class="row">
@@ -1086,17 +1122,55 @@ function renderPayslipStats(){
   const gross = Number(p.gross)||0, tax = Number(p.tax)||0, ni = Number(p.ni)||0, netPay = Number(p.netPay)||0;
   const effTaxRate = gross>0 ? (tax/gross*100) : 0;
   const takeHomePct = gross>0 ? (netPay/gross*100) : 0;
+
+  const keys = sortedMonthKeys();
+  const idx = keys.indexOf(data.currentMonthKey);
+  const prevKey = idx>0 ? keys[idx-1] : null;
+  const prevP = prevKey ? data.months[prevKey].payslip : null;
+  const chgHtml = (cur, prevVal) => {
+    if(!prevP || !prevVal) return '';
+    const pct = ((cur - prevVal) / prevVal) * 100;
+    if(Math.abs(pct) < 1) return '';
+    return `<div class="chg ${pct>0?'up':'down'}">${pct>0?'▲':'▼'} ${Math.abs(pct).toFixed(0)}% vs last month</div>`;
+  };
+
   const stats = [
-    {k:'Gross pay', v:curFmt(gross), cls:'gold'},
-    {k:'Tax paid', v:curFmt(tax), cls:'neg'},
-    {k:'National Insurance', v:curFmt(ni), cls:'neg'},
-    {k:'Net pay', v:curFmt(netPay), cls:'pos'},
-    {k:'Effective tax rate', v:effTaxRate.toFixed(1)+'%', cls:'gold'},
-    {k:'Take-home %', v:takeHomePct.toFixed(1)+'%', cls:takeHomePct>=70?'pos':'gold'},
+    {k:'Gross pay', v:curFmt(gross), cls:'gold', chg:chgHtml(gross, prevP&&Number(prevP.gross))},
+    {k:'Tax paid', v:curFmt(tax), cls:'neg', chg:chgHtml(tax, prevP&&Number(prevP.tax))},
+    {k:'National Insurance', v:curFmt(ni), cls:'neg', chg:chgHtml(ni, prevP&&Number(prevP.ni))},
+    {k:'Net pay', v:curFmt(netPay), cls:'pos', chg:chgHtml(netPay, prevP&&Number(prevP.netPay))},
+    {k:'Effective tax rate', v:effTaxRate.toFixed(1)+'%', cls:'gold', chg:''},
+    {k:'Take-home %', v:takeHomePct.toFixed(1)+'%', cls:takeHomePct>=70?'pos':'gold', chg:''},
   ];
   document.getElementById('payslipStatGrid').innerHTML = stats.map(s=>`
-    <div class="stat"><div class="k">${s.k}</div><div class="v ${s.cls}">${s.v}</div></div>
+    <div class="stat"><div class="k">${s.k}</div><div class="v ${s.cls}">${s.v}</div>${s.chg}</div>
   `).join('');
+}
+
+function ukTaxYearRange(monthKey){
+  const [y,mo] = monthKey.split('-').map(Number);
+  const startYear = mo >= 4 ? y : y - 1;
+  return { start: `${startYear}-04`, end: `${startYear+1}-03` };
+}
+
+function renderPayslipYtd(){
+  const range = ukTaxYearRange(data.currentMonthKey);
+  let g=0, t=0, n=0, months=0;
+  sortedMonthKeys().forEach(k => {
+    if(k < range.start || k > range.end || k > data.currentMonthKey) return;
+    const p = data.months[k].payslip;
+    if(!p) return;
+    g += Number(p.gross)||0; t += Number(p.tax)||0; n += Number(p.ni)||0;
+    if(Number(p.gross)>0) months++;
+  });
+  const stats = [
+    {k:'YTD gross', v:curFmt(g), cls:'gold'},
+    {k:'YTD tax', v:curFmt(t), cls:'neg'},
+    {k:'YTD NI', v:curFmt(n), cls:'neg'},
+  ];
+  document.getElementById('payslipYtdStatGrid').innerHTML = stats.map(s=>`
+    <div class="stat"><div class="k">${s.k}</div><div class="v ${s.cls}">${s.v}</div></div>
+  `).join('') + (months===0 ? '<div class="empty" style="grid-column:1/-1;">no payslips logged yet in this tax year (6 Apr – 5 Apr)</div>' : '');
 }
 
 function renderPayslipTips(){
@@ -1252,11 +1326,26 @@ function renderPayslipInsights(){
   `;
 }
 
+document.getElementById('addNetPayBtn').addEventListener('click', () => {
+  const p = ensurePayslip(currentMonth());
+  const netPay = Number(p.netPay)||0;
+  if(netPay <= 0){ alert('Enter this month\'s net pay on the payslip below first.'); return; }
+  const label = p.employer ? p.employer : 'Net pay (payslip)';
+  const arr = currentMonth().income;
+  let target = arr.find(r => r.label === label);
+  if(!target){ target = {id:uid(), label, amount:0, recurring:false, category:''}; arr.push(target); }
+  target.amount = netPay;
+  renderSimpleTable('income','incomeBody'); renderTotals(); renderOverview();
+  scheduleSave();
+  exportStatus(`Added ${curFmt(netPay)} to Income as "${label}".`);
+});
+
 function renderPayslip(){
   ensurePayslip(currentMonth());
   renderPayslipForm();
   renderPayslipSettingsForm();
   renderPayslipStats();
+  renderPayslipYtd();
   renderPayslipTips();
   renderPayslipInfo();
   renderPayslipInsights();
@@ -1364,17 +1453,53 @@ function renderTrends(){
   const incomes = keys.map(k => sum(data.months[k].income));
   const expenses = keys.map(k => sum(data.months[k].expenses));
   const savings = keys.map(k => sum(data.months[k].savings));
+  const mult = PAY_FREQUENCY_MULTIPLIER[data.settings.payFrequency] || 12;
+  const annualizedGross = keys.map(k => {
+    const p = data.months[k].payslip;
+    if(!p || !(Number(p.gross)>0)) return null;
+    return Number(p.gross) * mult;
+  });
+  const hasPayslipData = annualizedGross.some(v => v !== null);
 
   if(trendChart) trendChart.destroy();
+  const datasets = [
+    {label:'Income', data:incomes, borderColor:'#E3A93A', backgroundColor:'#E3A93A', tension:.3, yAxisID:'y'},
+    {label:'Expenses', data:expenses, borderColor:'#FF7A59', backgroundColor:'#FF7A59', tension:.3, yAxisID:'y'},
+    {label:'Savings', data:savings, borderColor:'#2F9E7A', backgroundColor:'#2F9E7A', tension:.3, yAxisID:'y'},
+  ];
+  if(hasPayslipData){
+    datasets.push({label:'Annualized gross (payslip)', data:annualizedGross, borderColor:'#5B8FBF', backgroundColor:'#5B8FBF', borderDash:[6,4], tension:.3, yAxisID:'y1', spanGaps:true});
+  }
+  const scales = { y:{ ticks:{font:{family:'Inter',size:11}} }, x:{ ticks:{font:{family:'Inter',size:11}} } };
+  if(hasPayslipData){
+    scales.y1 = { position:'right', ticks:{font:{family:'Inter',size:11}}, grid:{drawOnChartArea:false} };
+  }
   trendChart = new Chart(document.getElementById('trendChart'), {
     type:'line',
-    data:{ labels, datasets:[
-      {label:'Income', data:incomes, borderColor:'#E3A93A', backgroundColor:'#E3A93A', tension:.3},
-      {label:'Expenses', data:expenses, borderColor:'#FF7A59', backgroundColor:'#FF7A59', tension:.3},
-      {label:'Savings', data:savings, borderColor:'#2F9E7A', backgroundColor:'#2F9E7A', tension:.3},
-    ]},
-    options:{ plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11.5}}}}, scales:{ y:{ ticks:{font:{family:'Inter',size:11}} }, x:{ ticks:{font:{family:'Inter',size:11}} } } }
+    data:{ labels, datasets },
+    options:{ plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11.5}}}}, scales }
   });
+
+  const catWrap = document.getElementById('categoryTrendChart').parentElement;
+  if(categoryTrendChart) categoryTrendChart.destroy();
+  const categoriesSet = new Set();
+  keys.forEach(k => { data.months[k].expenses.forEach(r => { if(Number(r.amount)>0) categoriesSet.add(r.category || 'Uncategorized'); }); });
+  const categories = [...categoriesSet];
+  if(categories.length === 0){
+    catWrap.innerHTML = '<div class="empty">tag some expense lines with a category to see spending over time</div>';
+  } else {
+    if(!document.getElementById('categoryTrendChart')){ catWrap.innerHTML = '<canvas id="categoryTrendChart"></canvas>'; }
+    const palette = ['#2F9E7A','#FF7A59','#E3A93A','#5B8FBF','#B57EDC','#6FCF97','#F2994A','#EB5757','#56CCF2','#9B51E0'];
+    categoryTrendChart = new Chart(document.getElementById('categoryTrendChart'), {
+      type:'bar',
+      data:{ labels, datasets: categories.map((cat,i) => ({
+        label: cat,
+        data: keys.map(k => data.months[k].expenses.filter(r => (r.category||'Uncategorized')===cat).reduce((s,r)=>s+(Number(r.amount)||0),0)),
+        backgroundColor: palette[i%palette.length],
+      })) },
+      options:{ plugins:{legend:{position:'bottom', labels:{boxWidth:12, font:{family:'Inter',size:11}}}}, scales:{ x:{stacked:true, ticks:{font:{family:'Inter',size:11}}}, y:{stacked:true, ticks:{font:{family:'Inter',size:11}}} } }
+    });
+  }
 
   const snaps = data.assetSnapshots;
   const nwWrap = document.getElementById('netWorthChart').parentElement;
@@ -1425,7 +1550,7 @@ document.addEventListener('input', (e) => {
     const p = ensurePayslip(currentMonth());
     const field = t.dataset.field;
     p[field] = field === 'taxCode' ? t.value : (t.value===''?0:Number(t.value));
-    renderPayslipStats(); renderPayslipTips(); renderPayslipTrend(); renderPayslipInsights();
+    renderPayslipStats(); renderPayslipYtd(); renderPayslipTips(); renderPayslipTrend(); renderPayslipInsights();
     scheduleSave();
     return;
   }
@@ -1581,6 +1706,11 @@ document.getElementById('reportBtn').addEventListener('click', () => {
   };
   const net = currentNetWorthTotals();
   const netRows = Object.entries(net).map(([c,v]) => `<tr><td>${c}</td><td class="amt">${CUR_SYMBOLS[c]||''}${fmt(v)}</td></tr>`).join('');
+  const catTotals = {};
+  m.expenses.forEach(r => { const c = r.category || 'Uncategorized'; catTotals[c] = (catTotals[c]||0) + (Number(r.amount)||0); });
+  const catRows = Object.entries(catTotals).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1])
+    .map(([c,v]) => `<tr><td>${escapeHtml(c)}</td><td class="amt">${curFmt(v)}</td></tr>`).join('');
+  const categorySection = catRows ? `<h3>Expenses by category</h3><table><tr><th>Category</th><th class="amt">Total</th></tr>${catRows}</table>` : '';
   const p = m.payslip;
   const payslipSection = p && Number(p.gross) > 0 ? `
     <h3>Payslip</h3>
@@ -1593,6 +1723,7 @@ document.getElementById('reportBtn').addEventListener('click', () => {
     <table><tr><th>Item</th><th class="amt">Amount</th></tr>${rowsHtml(m.income,false)}<tr class="totalrow"><td>Total</td><td class="amt">${curFmt(inc)}</td></tr>${plannedLine(m.plannedIncome, inc)}</table>
     <h3>Expenses</h3>
     <table><tr><th>Item</th><th class="amt">Amount</th></tr>${rowsHtml(m.expenses,true)}<tr class="totalrow"><td>Total</td><td class="amt">${curFmt(exp)}</td></tr>${plannedLine(m.plannedExpenses, exp)}</table>
+    ${categorySection}
     <h3>Savings</h3>
     <table><tr><th>Item</th><th class="amt">Amount</th></tr>${rowsHtml(m.savings,false)}<tr class="totalrow"><td>Total</td><td class="amt">${curFmt(sav)}</td></tr>${plannedLine(m.plannedSavings, sav)}</table>
     <h3>Balance</h3>
@@ -1636,9 +1767,35 @@ function normalizeDesc(s){
 
 let pendingImportRows = [];
 
+const CATEGORY_KEYWORDS = {
+  Housing: ['rent','mortgage','landlord'],
+  Utilities: ['electric','energy','octopus','edf','british gas','water','council tax','broadband','virgin media','bt group','vodafone','ee limited','o2 '],
+  Food: ['tesco','sainsbury','asda','aldi','lidl','morrison','waitrose','grocery','groceries','restaurant','uber eats','deliveroo','just eat','coffee','cafe','mcdonald','kfc','greggs'],
+  Transport: ['uber','tfl','trainline','national rail','bus','fuel','petrol','shell','bp ','esso','parking','taxi','addison lee'],
+  Debt: ['loan','credit card payment','klarna','clearpay','overdraft','amex payment'],
+  Subscriptions: ['netflix','spotify','amazon prime','disney','subscription','apple.com/bill','icloud','youtube premium'],
+  Giving: ['donation','charity','church','tithe'],
+  Health: ['pharmacy','boots','gym','doctor','dental','nhs','puregym'],
+  Personal: ['haircut','salon','clothing','primark','asos','shein'],
+};
+function guessCategory(desc){
+  const norm = normalizeDesc(desc);
+  for(const [cat, words] of Object.entries(CATEGORY_KEYWORDS)){
+    if(words.some(w => norm.includes(normalizeDesc(w)))) return cat;
+  }
+  return '';
+}
+
 function suggestCategory(desc, direction, month){
   const norm = normalizeDesc(desc);
   if(data.categoryRules[norm]) return data.categoryRules[norm];
+  if(direction === 'out'){
+    const guessedCat = guessCategory(desc);
+    if(guessedCat){
+      const catRow = month.expenses.find(r => r.category === guessedCat);
+      if(catRow) return 'expenses:' + catRow.label;
+    }
+  }
   const pools = direction === 'in'
     ? [{section:'income', arr:month.income}]
     : [{section:'expenses', arr:month.expenses}, {section:'savings', arr:month.savings}];
@@ -1850,7 +2007,10 @@ document.getElementById('confirmImportBtn').addEventListener('click', () => {
     const total = direction === 'out' ? Math.abs(r.amount) + Math.abs(r.fee||0) : Math.abs(r.amount);
     const arr = month[section];
     let target = arr.find(x => x.label === label);
-    if(!target){ target = {id:uid(), label, amount:0}; arr.push(target); }
+    if(!target){
+      target = {id:uid(), label, amount:0, recurring:false, category: section==='expenses' ? guessCategory(r.description) : ''};
+      arr.push(target);
+    }
     target.amount = (Number(target.amount)||0) + total;
     data.categoryRules[normalizeDesc(r.description)] = sel.value;
     count++;
@@ -2057,6 +2217,7 @@ function syncSettingsUI(){
   document.getElementById('autoLockSelect').value = String(lockConfig.autoLockMinutes || 0);
   document.getElementById('darkModeToggle').checked = document.documentElement.getAttribute('data-theme') === 'dark';
   document.getElementById('primaryCurrencySelect').value = (data && data.settings && data.settings.primaryCurrency) || '£';
+  document.getElementById('showRecurringToggle').checked = !!(data && data.settings && data.settings.showRecurring);
 }
 document.getElementById('settingsBtn').addEventListener('click', async () => {
   syncSettingsUI();
@@ -2083,6 +2244,13 @@ document.getElementById('darkModeToggle').addEventListener('change', (e) => {
 document.getElementById('primaryCurrencySelect').addEventListener('change', (e) => {
   data.settings.primaryCurrency = e.target.value;
   renderTotals(); renderPayslipStats();
+  scheduleSave();
+});
+document.getElementById('showRecurringToggle').addEventListener('change', (e) => {
+  data.settings.showRecurring = e.target.checked;
+  renderSimpleTable('income','incomeBody');
+  renderSimpleTable('expenses','expenseBody');
+  renderSimpleTable('savings','savingsBody');
   scheduleSave();
 });
 document.getElementById('lockToggle').addEventListener('change', async (e) => {
