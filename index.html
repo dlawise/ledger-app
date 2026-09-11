@@ -308,6 +308,7 @@
   <nav class="tabs">
     <button data-tab="overview" class="active">Overview</button>
     <button data-tab="budget">Budget</button>
+    <button data-tab="payslips">Payslips</button>
     <button data-tab="assets">Assets</button>
     <button data-tab="trends">Trends</button>
   </nav>
@@ -350,6 +351,22 @@
     <div class="card">
       <div class="card-head"><h2>Left over</h2><span class="eyebrow">Income − expenses − savings</span></div>
       <div class="card-total" id="balanceRow" style="border-top:none;"><span>Balance</span><span id="balanceTotal">0</span></div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-payslips">
+    <div class="card">
+      <div class="card-head"><h2>💼 Payslips</h2><span class="eyebrow">Log each one, then sync the total into Income</span></div>
+      <table><tbody id="payslipsBody"></tbody></table>
+      <div class="add-row" data-add="payslips">+ add payslip</div>
+      <div class="card-total gold"><span>Net total this month</span><span id="payslipsTotal">0</span></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Sync to Income</h2><span class="eyebrow">Adds any new net pay into your Salary line</span></div>
+      <div style="padding:6px 18px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+        <span style="font-size:12.5px;color:var(--ink-soft);" id="payslipsSyncStatus"></span>
+        <button id="syncPayslipsBtn" style="background:var(--teal);color:#fff;border:none;border-radius:9px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0;">Sync to Income</button>
+      </div>
     </div>
   </div>
 
@@ -426,12 +443,6 @@
       </label>
     </div>
 
-    <h3 class="modal-section-title">⚠️ Reset</h3>
-    <div class="row">
-      <div><div class="label">Start fresh</div><div class="desc">Wipes all months, snapshots &amp; assets — like a brand new install, starting this month</div></div>
-      <button class="action danger" id="resetAppBtn">Reset app</button>
-    </div>
-
     <h3 class="modal-section-title">🔒 Security</h3>
     <div class="row">
       <div><div class="label">Require passcode to open</div><div class="desc">Encrypts your data with a passcode on this device</div></div>
@@ -477,7 +488,7 @@
 
 <script>
 const CUR_SYMBOLS = {N:'₦', '$':'$', '£':'£', '€':'€'};
-const APP_VERSION = '2026.09.3 · Reset app option';
+const APP_VERSION = '2026.09.4 · Payslips tab + auto fresh start';
 const STORAGE_KEY = 'ledger-data-v2';
 const OLD_STORAGE_KEY = 'finance-data';
 
@@ -489,7 +500,9 @@ const DEFAULT_MONTH = () => ({
     {label:'Groceries', amount:0, limit:0}, {label:'Transport', amount:0, limit:0},
     {label:'Miscellaneous / spendings', amount:0, limit:0}
   ],
-  savings: [ {label:'Rainy Day', amount:0}, {label:'Invest', amount:0} ]
+  savings: [ {label:'Rainy Day', amount:0}, {label:'Invest', amount:0} ],
+  payslips: [],
+  payslipsAddedTotal: 0
 });
 
 const DEFAULT_ASSETS = () => ([
@@ -541,9 +554,13 @@ function freshData(){
 function normalizeData(d){
   if(!d.assetSnapshots) d.assetSnapshots = [];
   if(!d.categoryRules) d.categoryRules = {};
+  if(!Array.isArray(d.assets)) d.assets = DEFAULT_ASSETS();
   Object.values(d.months).forEach(m => {
-    ['income','expenses','savings'].forEach(k => ensureIds(m[k]));
+    ['income','expenses','savings'].forEach(k => { if(!Array.isArray(m[k])) m[k] = []; ensureIds(m[k]); });
     m.expenses.forEach(r => { if(typeof r.limit !== 'number') r.limit = 0; });
+    if(!Array.isArray(m.payslips)) m.payslips = [];
+    ensureIds(m.payslips);
+    if(typeof m.payslipsAddedTotal !== 'number') m.payslipsAddedTotal = 0;
   });
   ensureIds(d.assets);
   return d;
@@ -639,7 +656,9 @@ document.getElementById('createMonthBtn').addEventListener('click', () => {
       data.months[val] = {
         income: latest.income.map(r => ({id:uid(), label:r.label, amount:0})),
         expenses: latest.expenses.map(r => ({id:uid(), label:r.label, amount:0, limit:r.limit||0})),
-        savings: latest.savings.map(r => ({id:uid(), label:r.label, amount:0}))
+        savings: latest.savings.map(r => ({id:uid(), label:r.label, amount:0})),
+        payslips: [],
+        payslipsAddedTotal: 0
       };
     } else {
       data.months[val] = DEFAULT_MONTH();
@@ -682,6 +701,55 @@ function renderExpenseTable(){
     tbody.appendChild(tr);
   });
 }
+function payslipNet(row){ return (Number(row.gross)||0) - (Number(row.deductions)||0); }
+
+function renderPayslipsPanel(){
+  const m = currentMonth();
+  const tbody = document.getElementById('payslipsBody');
+  tbody.innerHTML = '';
+  if(m.payslips.length === 0){
+    tbody.innerHTML = '<tr><td colspan="4" class="empty">no payslips logged for this month yet</td></tr>';
+  } else {
+    m.payslips.forEach(row => {
+      const tr = document.createElement('tr'); tr.className = 'row';
+      tr.innerHTML = `
+        <td class="label"><input type="text" placeholder="e.g. April – 1st half" value="${escapeAttr(row.label||'')}" data-key="payslips" data-id="${row.id}" data-field="label"></td>
+        <td class="amount"><div class="amt-wrap"><input type="number" placeholder="gross" value="${row.gross||''}" data-key="payslips" data-id="${row.id}" data-field="gross" step="any"></div></td>
+        <td class="amount"><div class="amt-wrap"><input type="number" placeholder="deductions" value="${row.deductions||''}" data-key="payslips" data-id="${row.id}" data-field="deductions" step="any"></div></td>
+        <td class="amount" style="font-weight:700;color:var(--teal-dark);">${fmt(payslipNet(row))}</td>
+        <td class="del"><button data-del="payslips" data-id="${row.id}" title="remove">✕</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+  const totalNet = m.payslips.reduce((a,r) => a + payslipNet(r), 0);
+  document.getElementById('payslipsTotal').textContent = fmt(totalNet);
+  const already = m.payslipsAddedTotal || 0;
+  const delta = totalNet - already;
+  document.getElementById('payslipsSyncStatus').textContent = Math.abs(delta) < 0.005
+    ? 'Income is up to date with your logged payslips.'
+    : `${fmt(Math.abs(delta))} not yet reflected in Income.`;
+}
+
+function syncPayslips(){
+  const m = currentMonth();
+  const totalNet = m.payslips.reduce((a,r) => a + payslipNet(r), 0);
+  const already = m.payslipsAddedTotal || 0;
+  const delta = totalNet - already;
+  if(Math.abs(delta) < 0.005){
+    exportStatus('Already up to date — nothing new to sync.');
+    return;
+  }
+  let salaryRow = m.income.find(r => /salary/i.test(r.label)) || m.income[0];
+  if(!salaryRow){ salaryRow = {id:uid(), label:'Salary', amount:0}; m.income.push(salaryRow); }
+  salaryRow.amount = (Number(salaryRow.amount)||0) + delta;
+  m.payslipsAddedTotal = totalNet;
+  scheduleSave();
+  render();
+  exportStatus(`Synced ${fmt(delta)} into Income (${salaryRow.label}).`);
+}
+document.getElementById('syncPayslipsBtn').addEventListener('click', syncPayslips);
+
 function renderAssets(){
   const tbody = document.getElementById('assetsBody');
   tbody.innerHTML = '';
@@ -893,6 +961,7 @@ function render(){
   renderSimpleTable('savings','savingsBody');
   renderTotals();
   renderOverview();
+  renderPayslipsPanel();
   renderAssetsPanel();
   renderTrends();
 }
@@ -904,6 +973,7 @@ document.querySelectorAll('nav.tabs button').forEach(btn => {
     btn.classList.add('active');
     document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
     if(btn.dataset.tab === 'overview') renderOverview();
+    if(btn.dataset.tab === 'payslips') renderPayslipsPanel();
     if(btn.dataset.tab === 'trends') renderTrends();
   });
 });
@@ -914,8 +984,10 @@ document.addEventListener('input', (e) => {
     const arr = t.dataset.key === 'assets' ? data.assets : currentMonth()[t.dataset.key];
     const row = arr.find(r => r.id === t.dataset.id);
     if(!row) return;
-    row[t.dataset.field] = (t.dataset.field === 'amount' || t.dataset.field === 'limit') ? (t.value===''?0:Number(t.value)) : t.value;
+    const numericFields = ['amount','limit','gross','deductions'];
+    row[t.dataset.field] = numericFields.includes(t.dataset.field) ? (t.value===''?0:Number(t.value)) : t.value;
     renderTotals(); renderOverview();
+    if(t.dataset.key === 'payslips') renderPayslipsPanel();
     scheduleSave();
   }
 });
@@ -923,10 +995,10 @@ document.addEventListener('input', (e) => {
 document.addEventListener('click', (e) => {
   const addKey = e.target.closest('[data-add]')?.dataset.add;
   if(addKey){
-    const newRow = {id:uid(), label:'New item', amount:0};
-    if(addKey === 'assets'){ newRow.cur='$'; data.assets.push(newRow); renderAssetsPanel(); }
-    else if(addKey === 'expenses'){ newRow.limit = 0; currentMonth().expenses.push(newRow); renderExpenseTable(); renderTotals(); renderOverview(); }
-    else { currentMonth()[addKey].push(newRow); renderSimpleTable(addKey, addKey+'Body'); renderTotals(); renderOverview(); }
+    if(addKey === 'assets'){ const newRow = {id:uid(), label:'New item', amount:0, cur:'$'}; data.assets.push(newRow); renderAssetsPanel(); }
+    else if(addKey === 'expenses'){ const newRow = {id:uid(), label:'New item', amount:0, limit:0}; currentMonth().expenses.push(newRow); renderExpenseTable(); renderTotals(); renderOverview(); }
+    else if(addKey === 'payslips'){ const newRow = {id:uid(), label:'', gross:0, deductions:0}; currentMonth().payslips.push(newRow); renderPayslipsPanel(); }
+    else { const newRow = {id:uid(), label:'New item', amount:0}; currentMonth()[addKey].push(newRow); renderSimpleTable(addKey, addKey+'Body'); renderTotals(); renderOverview(); }
     scheduleSave();
     return;
   }
@@ -935,6 +1007,7 @@ document.addEventListener('click', (e) => {
     const key = delBtn.dataset.del, id = delBtn.dataset.id;
     if(key === 'assets'){ data.assets = data.assets.filter(r=>r.id!==id); renderAssetsPanel(); }
     else if(key === 'expenses'){ currentMonth().expenses = currentMonth().expenses.filter(r=>r.id!==id); renderExpenseTable(); renderTotals(); renderOverview(); }
+    else if(key === 'payslips'){ currentMonth().payslips = currentMonth().payslips.filter(r=>r.id!==id); renderPayslipsPanel(); }
     else { currentMonth()[key] = currentMonth()[key].filter(r=>r.id!==id); renderSimpleTable(key, key+'Body'); renderTotals(); renderOverview(); }
     scheduleSave();
   }
@@ -981,11 +1054,7 @@ document.getElementById('importInput').addEventListener('change', (e) => {
     try{
       const imported = JSON.parse(reader.result);
       if(imported.months){
-        Object.values(imported.months).forEach(m => { ['income','expenses','savings'].forEach(k=>{ if(!Array.isArray(m[k])) m[k]=[]; ensureIds(m[k]); }); });
-        if(!imported.assets) imported.assets = DEFAULT_ASSETS();
-        ensureIds(imported.assets);
-        if(!imported.assetSnapshots) imported.assetSnapshots = [];
-        data = imported;
+        data = normalizeData(imported);
       } else {
         alert('This file is not a recognized Ledger backup.'); return;
       }
@@ -1214,33 +1283,6 @@ document.getElementById('confirmImportBtn').addEventListener('click', () => {
   exportStatus(`Imported ${count} transaction${count===1?'':'s'} into ${monthLabel(data.currentMonthKey)}.`);
 });
 document.getElementById('closeImport').addEventListener('click', () => document.getElementById('importBackdrop').classList.remove('show'));
-
-document.getElementById('resetAppBtn').addEventListener('click', () => {
-  const step1 = confirm(
-    'This will permanently delete every saved month, snapshot, and asset on this device, and start over fresh from this month. ' +
-    'This cannot be undone.\n\nHave you exported a backup already, in case you change your mind?'
-  );
-  if(!step1) return;
-  const typed = prompt('To confirm, type RESET below (all caps):');
-  if(typed !== 'RESET'){
-    if(typed !== null) alert('Did not match "RESET" — nothing was changed.');
-    return;
-  }
-  const key = monthKeyNow();
-  data = {
-    months: { [key]: DEFAULT_MONTH() },
-    currentMonthKey: key,
-    assets: DEFAULT_ASSETS(),
-    assetSnapshots: [],
-    categoryRules: {}
-  };
-  ensureIds(data.months[key].income); ensureIds(data.months[key].expenses); ensureIds(data.months[key].savings);
-  ensureIds(data.assets);
-  scheduleSave();
-  render();
-  document.getElementById('settingsBackdrop').classList.remove('show');
-  exportStatus('App reset — starting fresh this month.');
-});
 function renderPinPad(){
   const pad = document.getElementById('pinPad');
   const keys = ['1','2','3','4','5','6','7','8','9','','0','⌫'];
@@ -1475,6 +1517,21 @@ document.getElementById('changePinBtn').addEventListener('click', () => {
 });
 
 /* ---------- startup ---------- */
+// One-time, automatic fresh start for this release: clears previously-entered
+// months/figures/snapshots so the app opens as a clean template. Runs once —
+// the flag below stops it from repeating on future visits. If a passcode lock
+// was set, it's cleared too (there's no way to re-encrypt fresh data without
+// the old PIN), so security can simply be turned back on afterward if wanted.
+(function freshStartOnce(){
+  const FLAG = 'ledger-fresh-2026-09';
+  if(!localStorage.getItem(FLAG)){
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(VAULT_KEY);
+    localStorage.removeItem(LOCK_CONFIG_KEY);
+    localStorage.setItem(FLAG, '1');
+  }
+})();
+
 renderPinPad();
 loadLockConfig();
 if(lockConfig.enabled){
