@@ -1,6 +1,6 @@
 // Bump this string on every deploy — it's what forces the browser to notice
 // the service worker file changed, install the new one, and clear old caches.
-const CACHE = 'ledger-v2';
+const CACHE = 'ledger-v4';
 const ASSETS = ['./', './index.html', './manifest.json', './icon.png'];
 
 self.addEventListener('install', (event) => {
