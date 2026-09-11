@@ -488,7 +488,7 @@
 
 <script>
 const CUR_SYMBOLS = {N:'₦', '$':'$', '£':'£', '€':'€'};
-const APP_VERSION = '2026.09.4 · Payslips tab + auto fresh start';
+const APP_VERSION = '2026.09.5 · Generic assets + re-clean';
 const STORAGE_KEY = 'ledger-data-v2';
 const OLD_STORAGE_KEY = 'finance-data';
 
@@ -506,14 +506,9 @@ const DEFAULT_MONTH = () => ({
 });
 
 const DEFAULT_ASSETS = () => ([
-  {label:'Revolut - Commodities', amount:0, cur:'$'}, {label:'Revolut - Crypto', amount:0, cur:'$'},
-  {label:'Trading 212 - Stock ISA', amount:0, cur:'£'}, {label:'Trading 212 - Cash ISA', amount:0, cur:'£'},
-  {label:'Kuda', amount:0, cur:'N'}, {label:'Kuda', amount:0, cur:'$'},
-  {label:'Bamboo', amount:0, cur:'$'}, {label:'Bamboo', amount:0, cur:'N'},
-  {label:'Kucoin', amount:0, cur:'$'}, {label:'OKX', amount:0, cur:'$'}, {label:'Binance', amount:0, cur:'$'},
-  {label:'MT4', amount:0, cur:'$'}, {label:'Cowrywise', amount:0, cur:'N'}, {label:'Cowrywise', amount:0, cur:'$'},
-  {label:'Robinhood', amount:0, cur:'$'}, {label:'Gate.io', amount:0, cur:'$'}, {label:'NS&I', amount:0, cur:'£'},
-  {label:'PiggySave', amount:0, cur:'N'}, {label:'PiggyVest', amount:0, cur:'N'}
+  {label:'Bank account', amount:0, cur:'$'},
+  {label:'Savings account', amount:0, cur:'$'},
+  {label:'Investments', amount:0, cur:'$'}
 ]);
 
 let data = null;
@@ -1523,7 +1518,7 @@ document.getElementById('changePinBtn').addEventListener('click', () => {
 // was set, it's cleared too (there's no way to re-encrypt fresh data without
 // the old PIN), so security can simply be turned back on afterward if wanted.
 (function freshStartOnce(){
-  const FLAG = 'ledger-fresh-2026-09';
+  const FLAG = 'ledger-fresh-2026-09-v2';
   if(!localStorage.getItem(FLAG)){
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(VAULT_KEY);
