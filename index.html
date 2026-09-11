@@ -426,6 +426,12 @@
       </label>
     </div>
 
+    <h3 class="modal-section-title">⚠️ Reset</h3>
+    <div class="row">
+      <div><div class="label">Start fresh</div><div class="desc">Wipes all months, snapshots &amp; assets — like a brand new install, starting this month</div></div>
+      <button class="action danger" id="resetAppBtn">Reset app</button>
+    </div>
+
     <h3 class="modal-section-title">🔒 Security</h3>
     <div class="row">
       <div><div class="label">Require passcode to open</div><div class="desc">Encrypts your data with a passcode on this device</div></div>
@@ -471,7 +477,7 @@
 
 <script>
 const CUR_SYMBOLS = {N:'₦', '$':'$', '£':'£', '€':'€'};
-const APP_VERSION = '2026.09.2 · Generic starter categories';
+const APP_VERSION = '2026.09.3 · Reset app option';
 const STORAGE_KEY = 'ledger-data-v2';
 const OLD_STORAGE_KEY = 'finance-data';
 
@@ -1208,6 +1214,33 @@ document.getElementById('confirmImportBtn').addEventListener('click', () => {
   exportStatus(`Imported ${count} transaction${count===1?'':'s'} into ${monthLabel(data.currentMonthKey)}.`);
 });
 document.getElementById('closeImport').addEventListener('click', () => document.getElementById('importBackdrop').classList.remove('show'));
+
+document.getElementById('resetAppBtn').addEventListener('click', () => {
+  const step1 = confirm(
+    'This will permanently delete every saved month, snapshot, and asset on this device, and start over fresh from this month. ' +
+    'This cannot be undone.\n\nHave you exported a backup already, in case you change your mind?'
+  );
+  if(!step1) return;
+  const typed = prompt('To confirm, type RESET below (all caps):');
+  if(typed !== 'RESET'){
+    if(typed !== null) alert('Did not match "RESET" — nothing was changed.');
+    return;
+  }
+  const key = monthKeyNow();
+  data = {
+    months: { [key]: DEFAULT_MONTH() },
+    currentMonthKey: key,
+    assets: DEFAULT_ASSETS(),
+    assetSnapshots: [],
+    categoryRules: {}
+  };
+  ensureIds(data.months[key].income); ensureIds(data.months[key].expenses); ensureIds(data.months[key].savings);
+  ensureIds(data.assets);
+  scheduleSave();
+  render();
+  document.getElementById('settingsBackdrop').classList.remove('show');
+  exportStatus('App reset — starting fresh this month.');
+});
 function renderPinPad(){
   const pad = document.getElementById('pinPad');
   const keys = ['1','2','3','4','5','6','7','8','9','','0','⌫'];
