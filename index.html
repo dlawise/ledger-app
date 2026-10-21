@@ -295,6 +295,58 @@
     border:1px solid var(--line);border-radius:8px;padding:5px 6px;font-family:'Inter',sans-serif;font-size:12px;
     max-width:150px;background:var(--bg);
   }
+
+  /* ===== UX polish: thumb-reach bottom nav, sticky header, sheets ===== */
+  .wrap{padding:16px 20px calc(112px + env(safe-area-inset-bottom));}
+  header.top{
+    position:sticky;top:0;z-index:400;margin:-16px -20px 16px;padding:calc(12px + env(safe-area-inset-top)) 20px 10px;
+    background:rgba(251,249,244,.93);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+    box-shadow:0 1px 0 var(--line);
+  }
+  header.top h1{font-size:24px;}
+  header.top .sub{display:none;}
+  .gear-btn{width:44px;height:44px;}
+  .month-switcher{margin-top:8px;padding:6px 8px;}
+  .month-switcher button.nav{width:40px;height:40px;}
+
+  nav.tabs{
+    position:fixed;left:0;right:0;bottom:0;z-index:500;display:grid;grid-template-columns:repeat(5,1fr);gap:0;
+    margin:0;overflow:visible;background:rgba(255,255,255,.95);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+    border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom));
+  }
+  nav.tabs button{
+    background:none;box-shadow:none;border-radius:14px;padding:6px 2px;min-height:54px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+    font-family:'Inter',sans-serif;font-size:10.5px;font-weight:600;color:var(--ink-soft);
+    -webkit-tap-highlight-color:transparent;transition:background .15s,color .15s;
+  }
+  nav.tabs button .ico{font-size:20px;line-height:1;filter:grayscale(1);opacity:.65;transition:transform .15s,opacity .15s;}
+  nav.tabs button.active{background:var(--teal-soft);color:var(--teal-dark);}
+  nav.tabs button.active .ico{filter:none;opacity:1;transform:scale(1.1);}
+  body.kbd nav.tabs{display:none;}
+  @media(min-width:900px){
+    nav.tabs{left:50%;right:auto;transform:translateX(-50%);width:560px;bottom:16px;border-radius:20px;border:1px solid var(--line);box-shadow:var(--shadow);}
+  }
+
+  .save-note{bottom:calc(86px + env(safe-area-inset-bottom));z-index:600;}
+
+  td.del{width:46px;}
+  td.del button{padding:10px 12px;font-size:16px;border-radius:8px;}
+  .add-row{padding:15px 18px;}
+  td.amount input,td.label input{font-size:16px;} /* 16px stops iOS zooming the page on focus */
+  .tax-band-row input,.tax-gross-input,td.limit input{font-size:16px;}
+
+  .modal{position:relative;}
+  @keyframes sheet{from{transform:translateY(24px);opacity:0;}to{transform:none;opacity:1;}}
+  .modal-backdrop.show .modal{animation:sheet .22s ease;}
+  .modal .close-x{width:40px;height:40px;top:10px;right:10px;font-size:20px;}
+  @media(max-width:600px){
+    .modal-backdrop{align-items:flex-end;padding:0;}
+    .modal{max-width:none !important;border-radius:22px 22px 0 0;max-height:90vh;padding-bottom:calc(22px + env(safe-area-inset-bottom));}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important;transition:none !important;}
+  }
 </style>
 </head>
 <body>
@@ -305,14 +357,14 @@
         <h1>👛 Ledger</h1>
         <div class="sub">a friendly place to watch your money move</div>
       </div>
-      <button id="settingsBtn" class="gear-btn" title="Settings">⚙️</button>
+      <button id="settingsBtn" class="gear-btn" title="Settings" aria-label="Settings">⚙️</button>
     </div>
 
     <div class="month-switcher">
-      <button class="nav" id="prevMonth">‹</button>
+      <button class="nav" id="prevMonth" aria-label="Previous month">‹</button>
       <select id="monthSelect"></select>
-      <button class="nav" id="nextMonth">›</button>
-      <button class="nav" id="toggleAddMonth" title="Add a month">+</button>
+      <button class="nav" id="nextMonth" aria-label="Next month">›</button>
+      <button class="nav" id="toggleAddMonth" title="Add a month" aria-label="Add a month">+</button>
     </div>
     <div class="add-month-form" id="addMonthForm">
       <input type="month" id="newMonthInput">
@@ -321,11 +373,11 @@
   </header>
 
   <nav class="tabs">
-    <button data-tab="overview" class="active">Overview</button>
-    <button data-tab="budget">Budget</button>
-    <button data-tab="payslips">Payslips</button>
-    <button data-tab="assets">Assets</button>
-    <button data-tab="trends">Trends</button>
+    <button data-tab="overview" class="active"><span class="ico">🏠</span><span class="lbl">Overview</span></button>
+    <button data-tab="budget"><span class="ico">📋</span><span class="lbl">Budget</span></button>
+    <button data-tab="payslips"><span class="ico">💼</span><span class="lbl">Payslips</span></button>
+    <button data-tab="assets"><span class="ico">🏦</span><span class="lbl">Assets</span></button>
+    <button data-tab="trends"><span class="ico">📈</span><span class="lbl">Trends</span></button>
   </nav>
 
   <div class="panel active" id="panel-overview">
@@ -337,7 +389,7 @@
     </div>
     <div class="card">
       <div class="card-head"><h2>Where this month goes</h2><span class="eyebrow">Expense breakdown</span></div>
-      <div class="chart-wrap"><canvas id="expenseDoughnut"></canvas></div>
+      <div class="chart-wrap" id="doughnutWrap"><canvas id="expenseDoughnut"></canvas></div>
     </div>
   </div>
 
@@ -388,23 +440,27 @@
       <div class="card-head"><h2>🧮 Tax estimate</h2><span class="eyebrow">Rough estimate — not tax advice</span></div>
       <div style="padding:4px 18px 6px;">
         <label style="font-size:12px;color:var(--ink-soft);display:block;margin-bottom:8px;">Estimated annual gross income</label>
-        <input type="number" id="taxAnnualGross" class="tax-gross-input" step="any" placeholder="0">
+        <input type="number" inputmode="decimal" id="taxAnnualGross" class="tax-gross-input" step="any" placeholder="0">
+        <div id="taxGrossHint" style="font-size:11.5px;color:var(--ink-soft);margin-top:6px;"></div>
       </div>
       <div class="stat-grid" id="taxResultGrid" style="padding:12px 18px 4px;margin-bottom:0;"></div>
       <div style="padding:8px 18px 4px;">
         <button class="tax-toggle-btn" id="toggleTaxBands">⚙️ Customize tax bands</button>
       </div>
       <div id="taxBandsPanel" style="display:none;padding:4px 18px 4px;">
-        <div class="tax-band-row"><span class="label">Tax-free personal allowance, up to</span><input type="number" id="taxAllowance" step="any"></div>
-        <div class="tax-band-row"><span class="label">Basic rate band ends at</span><input type="number" id="taxBasicThreshold" step="any"></div>
-        <div class="tax-band-row"><span class="label">Basic rate %</span><input type="number" id="taxBasicRate" step="any"></div>
-        <div class="tax-band-row"><span class="label">Higher rate band ends at</span><input type="number" id="taxHigherThreshold" step="any"></div>
-        <div class="tax-band-row"><span class="label">Higher rate %</span><input type="number" id="taxHigherRate" step="any"></div>
-        <div class="tax-band-row"><span class="label">Additional rate % (above that)</span><input type="number" id="taxAdditionalRate" step="any"></div>
-        <div class="tax-band-row"><span class="label">Flat National Insurance % (optional)</span><input type="number" id="taxNiRate" step="any"></div>
-        <button class="action secondary" id="resetTaxBands" style="margin-top:12px;">Reset to 2024/25 UK defaults</button>
+        <div class="tax-band-row"><span class="label">Tax-free personal allowance, up to</span><input type="number" inputmode="decimal" id="taxAllowance" step="any"></div>
+        <div class="tax-band-row"><span class="label">Basic rate band ends at</span><input type="number" inputmode="decimal" id="taxBasicThreshold" step="any"></div>
+        <div class="tax-band-row"><span class="label">Basic rate %</span><input type="number" inputmode="decimal" id="taxBasicRate" step="any"></div>
+        <div class="tax-band-row"><span class="label">Higher rate band ends at</span><input type="number" inputmode="decimal" id="taxHigherThreshold" step="any"></div>
+        <div class="tax-band-row"><span class="label">Higher rate %</span><input type="number" inputmode="decimal" id="taxHigherRate" step="any"></div>
+        <div class="tax-band-row"><span class="label">Additional rate % (above that)</span><input type="number" inputmode="decimal" id="taxAdditionalRate" step="any"></div>
+        <div class="tax-band-row"><span class="label">NI starts at (primary threshold)</span><input type="number" inputmode="decimal" id="taxNiThreshold" step="any"></div>
+        <div class="tax-band-row"><span class="label">NI upper earnings limit</span><input type="number" inputmode="decimal" id="taxNiUpperLimit" step="any"></div>
+        <div class="tax-band-row"><span class="label">NI % up to the upper limit</span><input type="number" inputmode="decimal" id="taxNiMainRate" step="any"></div>
+        <div class="tax-band-row"><span class="label">NI % above the upper limit</span><input type="number" inputmode="decimal" id="taxNiUpperRate" step="any"></div>
+        <button class="action secondary" id="resetTaxBands" style="margin-top:12px;">Reset to 2026/27 UK defaults</button>
       </div>
-      <div class="tips-note" style="padding:10px 18px 16px;margin:0;">Estimate only, using simplified, fully-editable bands modeled on rest-of-UK income tax — not tax advice. Real tax depends on your tax code, region (Scotland uses different bands), pension contributions, student loan repayments, and other factors, and thresholds change most tax years. Update the numbers above to match the current year or your situation, and verify with HMRC or a tax professional before relying on this for filing or planning decisions.</div>
+      <div class="tips-note" style="padding:10px 18px 16px;margin:0;">Estimate only, using simplified, fully-editable bands modeled on rest-of-UK income tax and employee National Insurance — not tax advice. Real tax depends on your tax code, region (Scotland uses different bands), pension contributions, student loan repayments, and other factors, and thresholds change most tax years. Update the numbers above to match the current year or your situation, and verify with HMRC or a tax professional before relying on this for filing or planning decisions.</div>
     </div>
   </div>
 
@@ -430,7 +486,7 @@
     </div>
     <div class="card">
       <div class="card-head"><h2>💰 Net worth</h2><span class="eyebrow">From your saved snapshots</span></div>
-      <div class="chart-wrap"><canvas id="netWorthChart"></canvas></div>
+      <div class="chart-wrap" id="netWorthWrap"><canvas id="netWorthChart"></canvas></div>
     </div>
   </div>
 </div>
@@ -537,7 +593,7 @@
 
 <script>
 const CUR_SYMBOLS = {'£':'£', '$':'$', N:'₦', '€':'€'};
-const APP_VERSION = '2026.09.6 · Currency + tax estimate';
+const APP_VERSION = '2026.10.1 · Bottom nav + mobile UX polish';
 const STORAGE_KEY = 'ledger-data-v2';
 const OLD_STORAGE_KEY = 'finance-data';
 
@@ -560,22 +616,22 @@ const DEFAULT_ASSETS = () => ([
   {label:'Investments', amount:0, cur:'£'}
 ]);
 
-// A simplified, fully-editable model of UK income tax bands (2024/25, rest-of-UK
-// rates — Scotland differs). These change most tax years and vary by personal
-// circumstances, so every number here is meant to be corrected by the user
-// rather than trusted as-is. This is an estimate tool, not a tax calculator
-// of record — it doesn't model the personal allowance taper above £100k,
-// tax codes, pension contributions, student loan repayments, or full
-// National Insurance banding (niRate is a single flat-rate approximation).
+// A simplified, fully-editable model of UK income tax and employee National
+// Insurance (2026/27, England/Wales/NI rates — Scotland differs). Every number
+// is meant to be corrected by the user. It does not model the personal
+// allowance taper above £100k, tax codes, pension contributions or student loan.
 const DEFAULT_TAX_SETTINGS = () => ({
-  annualGross: 0,       // 0 = auto-fill from Salary × 12
-  allowance: 12570,     // tax-free personal allowance
-  basicThreshold: 50270,// basic rate band ends here
+  annualGross: 0,          // 0 = auto-fill from payslips (or Salary) x 12
+  allowance: 12570,        // tax-free personal allowance
+  basicThreshold: 50270,   // basic rate band ends here
   basicRate: 20,
   higherThreshold: 125140, // higher rate band ends here
   higherRate: 40,
-  additionalRate: 45,   // rate above higherThreshold
-  niRate: 0             // optional flat National Insurance estimate, 0 = ignore
+  additionalRate: 45,      // rate above higherThreshold
+  niThreshold: 12570,      // employee NI starts here (primary threshold)
+  niUpperLimit: 50270,     // upper earnings limit
+  niMainRate: 8,           // % between threshold and upper limit
+  niUpperRate: 2           // % above the upper limit (set both to 0 to ignore NI)
 });
 
 let data = null;
@@ -619,6 +675,11 @@ function normalizeData(d){
   if(!d.primaryCurrency) d.primaryCurrency = '£';
   if(!Array.isArray(d.assets)) d.assets = DEFAULT_ASSETS();
   if(!d.taxSettings) d.taxSettings = DEFAULT_TAX_SETTINGS();
+  if(typeof d.taxSettings.niMainRate !== 'number'){
+    const keep = d.taxSettings;
+    d.taxSettings = Object.assign(DEFAULT_TAX_SETTINGS(), keep);
+    delete d.taxSettings.niRate;
+  }
   Object.values(d.months).forEach(m => {
     ['income','expenses','savings'].forEach(k => { if(!Array.isArray(m[k])) m[k] = []; ensureIds(m[k]); });
     m.expenses.forEach(r => { if(typeof r.limit !== 'number') r.limit = 0; });
@@ -744,8 +805,8 @@ function renderSimpleTable(key, tbodyId){
     const tr = document.createElement('tr'); tr.className = 'row';
     tr.innerHTML = `
       <td class="label"><input type="text" value="${escapeAttr(row.label)}" data-key="${key}" data-id="${row.id}" data-field="label"></td>
-      <td class="amount"><div class="amt-wrap"><input type="number" value="${row.amount}" data-key="${key}" data-id="${row.id}" data-field="amount" step="any"></div></td>
-      <td class="del"><button data-del="${key}" data-id="${row.id}" title="remove">✕</button></td>
+      <td class="amount"><div class="amt-wrap"><input type="number" inputmode="decimal" value="${row.amount||''}" placeholder="0" data-key="${key}" data-id="${row.id}" data-field="amount" step="any"></div></td>
+      <td class="del"><button data-del="${key}" data-id="${row.id}" title="remove" aria-label="Remove row">✕</button></td>
     `;
     tbody.appendChild(tr);
   });
@@ -759,9 +820,9 @@ function renderExpenseTable(){
     const tr = document.createElement('tr'); tr.className = 'row';
     tr.innerHTML = `
       <td class="label"><input type="text" value="${escapeAttr(row.label)}" data-key="expenses" data-id="${row.id}" data-field="label"></td>
-      <td class="amount"><div class="amt-wrap"><input type="number" value="${row.amount}" data-key="expenses" data-id="${row.id}" data-field="amount" step="any"></div></td>
-      <td class="limit"><input type="number" placeholder="no limit" value="${row.limit ? row.limit : ''}" data-key="expenses" data-id="${row.id}" data-field="limit" step="any"></td>
-      <td class="del"><button data-del="expenses" data-id="${row.id}" title="remove">✕</button></td>
+      <td class="amount"><div class="amt-wrap"><input type="number" inputmode="decimal" value="${row.amount||''}" placeholder="0" data-key="expenses" data-id="${row.id}" data-field="amount" step="any"></div></td>
+      <td class="limit"><input type="number" inputmode="decimal" placeholder="no limit" value="${row.limit ? row.limit : ''}" data-key="expenses" data-id="${row.id}" data-field="limit" step="any"></td>
+      <td class="del"><button data-del="expenses" data-id="${row.id}" title="remove" aria-label="Remove row">✕</button></td>
     `;
     tbody.appendChild(tr);
   });
@@ -779,10 +840,10 @@ function renderPayslipsPanel(){
       const tr = document.createElement('tr'); tr.className = 'row';
       tr.innerHTML = `
         <td class="label"><input type="text" placeholder="e.g. April – 1st half" value="${escapeAttr(row.label||'')}" data-key="payslips" data-id="${row.id}" data-field="label"></td>
-        <td class="amount"><div class="amt-wrap"><input type="number" placeholder="gross" value="${row.gross||''}" data-key="payslips" data-id="${row.id}" data-field="gross" step="any"></div></td>
-        <td class="amount"><div class="amt-wrap"><input type="number" placeholder="deductions" value="${row.deductions||''}" data-key="payslips" data-id="${row.id}" data-field="deductions" step="any"></div></td>
+        <td class="amount"><div class="amt-wrap"><input type="number" inputmode="decimal" placeholder="gross" value="${row.gross||''}" data-key="payslips" data-id="${row.id}" data-field="gross" step="any"></div></td>
+        <td class="amount"><div class="amt-wrap"><input type="number" inputmode="decimal" placeholder="deductions" value="${row.deductions||''}" data-key="payslips" data-id="${row.id}" data-field="deductions" step="any"></div></td>
         <td class="amount" style="font-weight:700;color:var(--teal-dark);">${fmtP(payslipNet(row))}</td>
-        <td class="del"><button data-del="payslips" data-id="${row.id}" title="remove">✕</button></td>
+        <td class="del"><button data-del="payslips" data-id="${row.id}" title="remove" aria-label="Remove row">✕</button></td>
       `;
       tbody.appendChild(tr);
     });
@@ -824,18 +885,22 @@ function computeTax(gross, t){
   const basicRate = Number(t.basicRate)||0;
   const higherRate = Number(t.higherRate)||0;
   const additionalRate = Number(t.additionalRate)||0;
-  const niRate = Number(t.niRate)||0;
 
   const afterAllowance = Math.max(0, g - allowance);
   const basicBandSize = basicThreshold - allowance;
   const higherBandSize = higherThreshold - basicThreshold;
-
   const basicTaxable = Math.min(afterAllowance, basicBandSize);
   const higherTaxable = Math.min(Math.max(0, afterAllowance - basicBandSize), higherBandSize);
   const additionalTaxable = Math.max(0, afterAllowance - basicBandSize - higherBandSize);
-
   const tax = basicTaxable*(basicRate/100) + higherTaxable*(higherRate/100) + additionalTaxable*(additionalRate/100);
-  const ni = g * (niRate/100);
+
+  // Employee National Insurance: main rate between threshold and upper limit, lower rate above it
+  const niThreshold = Number(t.niThreshold)||0;
+  const niUpper = Math.max(niThreshold, Number(t.niUpperLimit)||0);
+  const niMain = Number(t.niMainRate)||0;
+  const niUpperRate = Number(t.niUpperRate)||0;
+  const ni = Math.max(0, Math.min(g, niUpper) - niThreshold)*(niMain/100) + Math.max(0, g - niUpper)*(niUpperRate/100);
+
   const net = g - tax - ni;
   return { tax, ni, net, effectiveRate: g > 0 ? ((tax+ni)/g*100) : 0 };
 }
@@ -844,7 +909,16 @@ function renderTaxCard(){
   const m = currentMonth();
   const t = data.taxSettings;
   const salaryRow = m.income.find(r => /salary/i.test(r.label)) || m.income[0];
-  const defaultAnnual = salaryRow ? (Number(salaryRow.amount)||0)*12 : 0;
+  const payslipGross = m.payslips.reduce((a,r) => a + (Number(r.gross)||0), 0);
+  let defaultAnnual = 0, hint = '';
+  if(payslipGross > 0){
+    defaultAnnual = payslipGross*12;
+    hint = 'Auto-filled from this month\'s payslip gross × 12. Type a figure to override.';
+  } else if(salaryRow && Number(salaryRow.amount) > 0){
+    defaultAnnual = Number(salaryRow.amount)*12;
+    hint = 'Auto-filled from Salary × 12. If that is your take-home, enter your gross pay here instead.';
+  }
+  document.getElementById('taxGrossHint').textContent = t.annualGross ? 'Using the figure you entered.' : hint;
 
   const grossInput = document.getElementById('taxAnnualGross');
   if(document.activeElement !== grossInput){
@@ -856,12 +930,13 @@ function renderTaxCard(){
   document.getElementById('taxResultGrid').innerHTML = `
     <div class="stat"><div class="k">Est. annual tax</div><div class="v neg">${fmtP(result.tax)}</div></div>
     <div class="stat"><div class="k">Est. monthly tax</div><div class="v neg">${fmtP(result.tax/12)}</div></div>
+    <div class="stat"><div class="k">Est. NI / yr</div><div class="v neg">${fmtP(result.ni)}</div></div>
     <div class="stat"><div class="k">Est. take-home / yr</div><div class="v pos">${fmtP(result.net)}</div></div>
     <div class="stat"><div class="k">Est. take-home / mo</div><div class="v pos">${fmtP(result.net/12)}</div></div>
   `;
 
   const bandFields = ['taxAllowance:allowance','taxBasicThreshold:basicThreshold','taxBasicRate:basicRate',
-    'taxHigherThreshold:higherThreshold','taxHigherRate:higherRate','taxAdditionalRate:additionalRate','taxNiRate:niRate'];
+    'taxHigherThreshold:higherThreshold','taxHigherRate:higherRate','taxAdditionalRate:additionalRate','taxNiThreshold:niThreshold','taxNiUpperLimit:niUpperLimit','taxNiMainRate:niMainRate','taxNiUpperRate:niUpperRate'];
   bandFields.forEach(pair => {
     const [elId, field] = pair.split(':');
     const el = document.getElementById(elId);
@@ -876,7 +951,7 @@ document.getElementById('taxAnnualGross').addEventListener('input', (e) => {
 });
 [['taxAllowance','allowance'],['taxBasicThreshold','basicThreshold'],['taxBasicRate','basicRate'],
  ['taxHigherThreshold','higherThreshold'],['taxHigherRate','higherRate'],['taxAdditionalRate','additionalRate'],
- ['taxNiRate','niRate']].forEach(([elId, field]) => {
+ ['taxNiThreshold','niThreshold'],['taxNiUpperLimit','niUpperLimit'],['taxNiMainRate','niMainRate'],['taxNiUpperRate','niUpperRate']].forEach(([elId, field]) => {
   document.getElementById(elId).addEventListener('input', (e) => {
     data.taxSettings[field] = e.target.value === '' ? 0 : Number(e.target.value);
     scheduleSave();
@@ -893,7 +968,7 @@ document.getElementById('resetTaxBands').addEventListener('click', () => {
   data.taxSettings.annualGross = keepGross;
   scheduleSave();
   renderTaxCard();
-  exportStatus('Tax bands reset to 2024/25 UK defaults.');
+  exportStatus('Tax bands reset to 2026/27 UK defaults.');
 });
 
 function renderAssets(){
@@ -909,9 +984,9 @@ function renderAssets(){
         <select data-key="assets" data-id="${row.id}" data-field="cur">
           ${Object.keys(CUR_SYMBOLS).map(c=>`<option value="${c}" ${c===cur?'selected':''}>${c}</option>`).join('')}
         </select>
-        <input type="number" value="${row.amount}" data-key="assets" data-id="${row.id}" data-field="amount" step="any">
+        <input type="number" inputmode="decimal" value="${row.amount||''}" placeholder="0" data-key="assets" data-id="${row.id}" data-field="amount" step="any">
       </div></td>
-      <td class="del"><button data-del="assets" data-id="${row.id}" title="remove">✕</button></td>
+      <td class="del"><button data-del="assets" data-id="${row.id}" title="remove" aria-label="Remove row">✕</button></td>
     `;
     tbody.appendChild(tr);
   });
@@ -947,7 +1022,7 @@ function renderOverview(){
   renderBudgetCard(m);
 
   const cats = m.expenses.filter(r=>Number(r.amount)>0);
-  const wrapEl = document.getElementById('expenseDoughnut').parentElement;
+  const wrapEl = document.getElementById('doughnutWrap');
   if(doughnutChart) doughnutChart.destroy();
   if(cats.length === 0){
     wrapEl.innerHTML = '<div class="empty">add some expense amounts to see the breakdown</div>';
@@ -1082,7 +1157,7 @@ function renderTrends(){
   });
 
   const snaps = data.assetSnapshots;
-  const nwWrap = document.getElementById('netWorthChart').parentElement;
+  const nwWrap = document.getElementById('netWorthWrap');
   if(netWorthChart) netWorthChart.destroy();
   if(snaps.length === 0){
     nwWrap.innerHTML = '<div class="empty">save a snapshot from the Assets tab to build this chart over time</div>';
@@ -1119,6 +1194,7 @@ document.querySelectorAll('nav.tabs button').forEach(btn => {
     document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+    window.scrollTo({top:0});
     if(btn.dataset.tab === 'overview') renderOverview();
     if(btn.dataset.tab === 'payslips'){ renderPayslipsPanel(); renderTaxCard(); }
     if(btn.dataset.tab === 'trends') renderTrends();
@@ -1231,18 +1307,18 @@ document.getElementById('csvBtn').addEventListener('click', () => {
 document.getElementById('reportBtn').addEventListener('click', () => {
   const m = currentMonth();
   const inc = sum(m.income), exp = sum(m.expenses), sav = sum(m.savings), bal = inc-exp-sav;
-  const rowsHtml = (arr) => arr.map(r => `<tr><td>${escapeHtml(r.label)}</td><td class="amt">${fmt(r.amount)}</td></tr>`).join('');
+  const rowsHtml = (arr) => arr.map(r => `<tr><td>${escapeHtml(r.label)}</td><td class="amt">${fmtP(r.amount)}</td></tr>`).join('');
   document.getElementById('printReport').innerHTML = `
     <h1>Ledger — ${monthLabel(data.currentMonthKey)}</h1>
     <p>Generated ${new Date().toLocaleDateString()}</p>
     <h3>Income</h3>
-    <table><tr><th>Item</th><th class="amt">Amount</th></tr>${rowsHtml(m.income)}<tr class="totalrow"><td>Total</td><td class="amt">${fmt(inc)}</td></tr></table>
+    <table><tr><th>Item</th><th class="amt">Amount</th></tr>${rowsHtml(m.income)}<tr class="totalrow"><td>Total</td><td class="amt">${fmtP(inc)}</td></tr></table>
     <h3>Expenses</h3>
-    <table><tr><th>Item</th><th class="amt">Amount</th></tr>${rowsHtml(m.expenses)}<tr class="totalrow"><td>Total</td><td class="amt">${fmt(exp)}</td></tr></table>
+    <table><tr><th>Item</th><th class="amt">Amount</th></tr>${rowsHtml(m.expenses)}<tr class="totalrow"><td>Total</td><td class="amt">${fmtP(exp)}</td></tr></table>
     <h3>Savings</h3>
-    <table><tr><th>Item</th><th class="amt">Amount</th></tr>${rowsHtml(m.savings)}<tr class="totalrow"><td>Total</td><td class="amt">${fmt(sav)}</td></tr></table>
+    <table><tr><th>Item</th><th class="amt">Amount</th></tr>${rowsHtml(m.savings)}<tr class="totalrow"><td>Total</td><td class="amt">${fmtP(sav)}</td></tr></table>
     <h3>Balance</h3>
-    <table><tr class="totalrow"><td>Left over</td><td class="amt">${fmt(bal)}</td></tr></table>
+    <table><tr class="totalrow"><td>Left over</td><td class="amt">${fmtP(bal)}</td></tr></table>
   `;
   window.print();
 });
@@ -1709,6 +1785,36 @@ if('serviceWorker' in navigator){
     window.location.reload();
   });
 }
+/* ---------- UX polish ---------- */
+(function uxPolish(){
+  const TYPING = 'input:not([type=checkbox]):not([type=file]):not([type=radio]), textarea, select';
+  let kbdTimer;
+  // hide the bottom nav while typing so it never sits on top of the keyboard or the field being edited
+  document.addEventListener('focusin', (e) => {
+    const t = e.target;
+    if(t.matches && t.matches(TYPING)){
+      clearTimeout(kbdTimer);
+      document.body.classList.add('kbd');
+      if(t.matches('input[type=text]') && t.value === 'New item') t.select();
+    }
+  });
+  document.addEventListener('focusout', () => {
+    clearTimeout(kbdTimer);
+    kbdTimer = setTimeout(() => {
+      const a = document.activeElement;
+      if(!(a && a.matches && a.matches(TYPING))) document.body.classList.remove('kbd');
+    }, 150);
+  });
+  // tap outside a sheet (or press Escape) to close it
+  ['settingsBackdrop','importBackdrop'].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('click', (e) => { if(e.target === el) el.classList.remove('show'); });
+  });
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape') document.querySelectorAll('.modal-backdrop.show').forEach(el => el.classList.remove('show'));
+  });
+})();
+
 armAutoLock();
 </script>
 </body>
