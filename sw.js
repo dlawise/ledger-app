@@ -1,6 +1,6 @@
 // Bump this string on every deploy — it's what forces the browser to notice
 // the service worker file changed, install the new one, and clear old caches.
-const CACHE = 'ledger-v14';
+const CACHE = 'ledger-v17';
 const ASSETS = ['./', './index.html', './manifest.json', './icon.png'];
 
 self.addEventListener('install', (event) => {
@@ -19,6 +19,12 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const req = event.request;
+  // Only handle our own files and the font/chart CDNs. Everything else, above all the live
+  // exchange-rate lookups, goes straight to the network so it can never be served stale.
+  const url = new URL(req.url);
+  const ownFile = url.origin === self.location.origin;
+  const staticCdn = /(^|\.)(jsdelivr\.net|googleapis\.com|gstatic\.com)$/.test(url.hostname) && !url.pathname.includes('currency-api');
+  if (req.method !== 'GET' || (!ownFile && !staticCdn)) return;
   const isPage = req.mode === 'navigate' || (req.method === 'GET' && req.headers.get('accept')?.includes('text/html'));
 
   if (isPage) {

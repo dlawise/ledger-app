@@ -431,9 +431,56 @@
   .sr-sub{font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
   .sr-amt{font-weight:700;font-size:13.5px;font-variant-numeric:tabular-nums;white-space:nowrap;}
   .sr-amt.in{color:var(--teal-dark);} .sr-amt.out{color:#C0432E;}
+  .fx-tag{font-size:10.5px;font-weight:700;color:var(--ink-soft);background:#EEE9DC;border-radius:10px;padding:2px 7px;white-space:nowrap;}
+  #fxRefreshBtn[disabled]{opacity:.6;cursor:default;}
+  /* ===== navigation & feel ===== */
+  * {-webkit-tap-highlight-color:transparent;}
+  button,select,input{touch-action:manipulation;}
+  .card{scroll-margin-top:120px;}
+  .card-head{cursor:pointer;-webkit-user-select:none;user-select:none;position:relative;padding-right:46px;}
+  .card-head .chev{
+    position:absolute;right:16px;top:50%;font-size:22px;line-height:1;color:var(--ink-soft);
+    transform:translateY(-50%) rotate(90deg);transition:transform .2s;
+  }
+  .card.collapsed .chev{transform:translateY(-50%) rotate(0deg);}
+  .card.collapsed > :not(.card-head){display:none !important;}
+  .action:active,.add-row:active,.bill-row button:active,nav.tabs button:active,.seg button:active{transform:scale(.97);}
+
+  /* the month only matters on tabs that work month by month */
+  body[data-tab="assets"] .month-switcher, body[data-tab="assets"] .add-month-form,
+  body[data-tab="trends"] .month-switcher, body[data-tab="trends"] .add-month-form{display:none !important;}
+
+  .fab{
+    position:fixed;right:18px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:450;width:58px;height:58px;border-radius:50%;
+    border:none;background:var(--teal);color:#fff;font-size:32px;line-height:1;box-shadow:0 6px 18px rgba(34,122,95,.38);
+    cursor:pointer;display:none;padding:0 0 3px;font-family:'Inter',sans-serif;font-weight:400;
+  }
+  body[data-tab="overview"] .fab, body[data-tab="budget"] .fab{display:block;}
+  body.kbd .fab{display:none !important;}
+  .fab:active{transform:scale(.92);}
+  .undo-bar{
+    position:fixed;left:18px;right:18px;bottom:calc(88px + env(safe-area-inset-bottom));z-index:650;max-width:420px;margin:0 auto;
+    background:var(--ink);color:#fff;border-radius:14px;padding:10px 12px 10px 16px;display:flex;align-items:center;
+    justify-content:space-between;gap:12px;font-size:13px;box-shadow:0 6px 18px rgba(0,0,0,.25);
+  }
+  .undo-bar button{background:none;border:none;color:#7FE3BE;font-weight:700;font-size:14px;cursor:pointer;padding:8px 6px;font-family:'Inter',sans-serif;}
+  .seg{display:flex;background:var(--teal-soft);border-radius:12px;padding:3px;gap:3px;}
+  .seg button{flex:1;border:none;background:none;padding:11px 6px;border-radius:9px;font-weight:600;font-size:13.5px;color:var(--teal-dark);cursor:pointer;font-family:'Inter',sans-serif;}
+  .seg button.active{background:#fff;box-shadow:var(--shadow);}
+  .qa-amount{font-size:30px !important;font-weight:700;text-align:center;font-variant-numeric:tabular-nums;}
+  .qa-label{font-size:12px;font-weight:600;color:var(--ink-soft);margin-top:14px;}
+  .step-row{display:flex;align-items:center;gap:12px;padding:12px 18px;border-top:1px solid var(--line);}
+  .step-row:first-child{border-top:none;}
+  .step-dot{width:26px;height:26px;border-radius:50%;border:2px solid var(--teal);display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;flex-shrink:0;}
+  .step-row.done .step-dot{background:var(--teal);}
+  .step-row .st{flex:1;min-width:0;}
+  .step-row .st b{display:block;font-size:14px;}
+  .step-row .st span{font-size:12px;color:var(--ink-soft);line-height:1.4;}
+  .step-row.done .st b{text-decoration:line-through;color:var(--ink-soft);}
+  .step-row button{border:none;background:var(--teal);color:#fff;border-radius:10px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;}
 </style>
 </head>
-<body>
+<body data-tab="overview">
 <div class="wrap">
   <header class="top">
     <div class="title-row">
@@ -468,6 +515,11 @@
   </nav>
 
   <div class="panel active" id="panel-overview">
+    <div class="card" id="welcomeCard" style="display:none;">
+      <div class="card-head"><h2>👋 Let's get you set up</h2><span class="eyebrow" id="welcomeEyebrow"></span></div>
+      <div id="welcomeSteps"></div>
+      <div style="padding:4px 18px 12px;text-align:right;"><button class="tax-toggle-btn" id="welcomeDismiss">Hide this</button></div>
+    </div>
     <div class="backup-banner" id="backupBanner" style="display:none;">
       <div class="bb-text"><b>Time for a backup</b><span id="backupBannerText"></span></div>
       <div class="bb-actions"><button id="backupNowBtn">Back up now</button><button class="ghost" id="backupLaterBtn">Later</button></div>
@@ -599,11 +651,20 @@
 
   <div class="panel" id="panel-assets">
     <div class="card" id="netWorthCard">
-      <div class="card-head"><h2>💎 Net worth</h2><span class="eyebrow">Approximate · uses your own exchange rates</span></div>
+      <div class="card-head"><h2>💎 Net worth</h2><span class="eyebrow">Approximate</span></div>
       <div class="stat-grid" id="nwGrid" style="padding:4px 18px 0;margin-bottom:0;"></div>
       <div id="nwWarn" style="padding:8px 18px 0;font-size:12.5px;color:#C0432E;"></div>
       <div id="fxRates" style="padding:8px 18px 2px;"></div>
-      <div class="tips-note" style="padding:6px 18px 14px;margin:0;">Rates are ones you type in, so this is a guide rather than a live valuation. Update them whenever you want a fresher figure.</div>
+      <div id="fxLive" style="padding:6px 18px 0;">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <button id="fxRefreshBtn" style="background:var(--teal);color:#fff;border:none;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">↻ Get live rates</button>
+          <span id="fxStatus" style="font-size:12px;color:var(--ink-soft);flex:1;min-width:160px;line-height:1.45;"></span>
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;margin-top:10px;cursor:pointer;">
+          <input type="checkbox" id="fxAutoToggle" style="width:18px;height:18px;"> Update rates automatically (at most once a day)
+        </label>
+      </div>
+      <div class="tips-note" style="padding:8px 18px 14px;margin:0;">Live rates are daily market reference rates, so what you'd actually get when exchanging money (or on the parallel market for ₦) can differ. A rate you type in is kept and never overwritten by the automatic update. Only the currency pair is sent to the rate service, never your figures.</div>
     </div>
 
     <div class="card">
@@ -646,12 +707,14 @@
       <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
     </div>
     <div class="card">
-      <div class="card-head"><h2>💰 Net worth</h2><span class="eyebrow">From your saved snapshots</span></div>
+      <div class="card-head"><h2>💰 Net worth</h2><span class="eyebrow" id="nwChartEyebrow">From your saved snapshots</span></div>
       <div class="chart-wrap" id="netWorthWrap"><canvas id="netWorthChart"></canvas></div>
     </div>
   </div>
 </div>
 
+<button class="fab" id="fab" aria-label="Quick add">+</button>
+<div class="undo-bar" id="undoBar" style="display:none;"><span id="undoText"></span><button id="undoBtn">Undo</button></div>
 <div class="save-note" id="saveNote">saved</div>
 <div id="printReport"></div>
 
@@ -778,6 +841,27 @@
   </div>
 </div>
 
+<!-- QUICK ADD -->
+<div class="modal-backdrop" id="quickBackdrop">
+  <div class="modal" style="max-width:420px;">
+    <button class="close-x" id="closeQuick" aria-label="Close">✕</button>
+    <h2>Quick add</h2>
+    <div class="seg" id="qaType" style="margin-top:12px;">
+      <button data-type="expense" class="active">Expense</button><button data-type="income">Income</button><button data-type="savings">Savings</button>
+    </div>
+    <input type="number" inputmode="decimal" step="any" id="qaAmount" class="pw-input qa-amount" placeholder="0.00">
+    <div class="qa-label">Category</div>
+    <select id="qaCategory" class="pw-input" style="margin-top:6px;"></select>
+    <input type="text" id="qaNewCat" class="pw-input" placeholder="New category name" style="display:none;" autocomplete="off">
+    <input type="text" id="qaNote" class="pw-input" placeholder="Note (optional), e.g. coffee with Sam" autocomplete="off">
+    <div id="qaMonthNote" style="font-size:12px;color:var(--ink-soft);margin-top:10px;"></div>
+    <div id="qaError" style="color:#C0432E;font-size:12.5px;font-weight:600;min-height:18px;margin-top:4px;"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px;">
+      <button class="action secondary" id="qaCancel">Cancel</button><button class="action" id="qaAdd">Add</button>
+    </div>
+  </div>
+</div>
+
 <!-- SEARCH -->
 <div class="modal-backdrop" id="searchBackdrop">
   <div class="modal" style="max-width:520px;">
@@ -806,7 +890,7 @@
 
 <script>
 const CUR_SYMBOLS = {'£':'£', '$':'$', N:'₦', '€':'€'};
-const APP_VERSION = '2026.10.5 · Bills, reminders & search';
+const APP_VERSION = '2026.10.8 · Quick add, collapsible cards, easier navigation';
 const STORAGE_KEY = 'ledger-data-v2';
 const OLD_STORAGE_KEY = 'finance-data';
 
@@ -848,6 +932,7 @@ const DEFAULT_TAX_SETTINGS = () => ({
 });
 
 let data = null;
+let welcomeSteps = [], undoTimer = null;   // declared up here because the first screen draw already uses them
 let saveTimer = null;
 let doughnutChart = null, trendChart = null, netWorthChart = null;
 
@@ -893,6 +978,11 @@ function normalizeData(d){
   if(!Array.isArray(d.goals)) d.goals = [];
   if(!d.fxRates || typeof d.fxRates !== 'object') d.fxRates = {};
   if(typeof d.debtExtra !== 'number') d.debtExtra = 0;
+  if(!d.fxManual || typeof d.fxManual !== 'object') d.fxManual = {};   // currencies whose rate you typed yourself
+  if(typeof d.fxAuto !== 'boolean') d.fxAuto = null;                    // null = never chosen; turns on after the first successful fetch
+  if(typeof d.fxUpdated !== 'string') d.fxUpdated = '';                 // date the live rates are from
+  if(typeof d.fxSource !== 'string') d.fxSource = '';
+  if(typeof d.fxFetchedAt !== 'number') d.fxFetchedAt = 0;
   if(!Array.isArray(d.bills)) d.bills = [];
   if(!Array.isArray(d.transactions)) d.transactions = [];
   if(!d.billsPaid || typeof d.billsPaid !== 'object') d.billsPaid = {};
@@ -1487,6 +1577,7 @@ function renderOverview(){
 
   renderTips(m, inc, exp, sav, rate);
   renderBudgetCard(m);
+  renderWelcome();
 
   const cats = m.expenses.filter(r=>Number(r.amount)>0);
   const wrapEl = document.getElementById('doughnutWrap');
@@ -1589,9 +1680,12 @@ function currentAssetTotals(){
 }
 document.getElementById('snapshotBtn').addEventListener('click', () => {
   const totals = currentAssetTotals();
-  const w = wealthTotals();
-  data.assetSnapshots.push({ date: new Date().toISOString().slice(0,10), totals,
-    combined: w.missing.length ? null : w.net, primary: data.primaryCurrency });
+  const debtTotals = {};
+  data.debts.forEach(d => { const c = d.cur || data.primaryCurrency || '£'; debtTotals[c] = (debtTotals[c]||0) + (Number(d.balance)||0); });
+  const w = wealthTotals(), complete = !w.missing.length;     // a combined figure is only recorded when every currency has a rate
+  data.assetSnapshots.push({ date: new Date().toISOString().slice(0,10), totals, debtTotals,
+    assetsCombined: complete ? w.assets : null, debtsCombined: complete ? w.debts : null, combined: complete ? w.net : null,
+    primary: data.primaryCurrency });
   data.assetSnapshots.sort((a,b)=> a.date.localeCompare(b.date));
   scheduleSave(); renderAssetsPanel();
 });
@@ -1603,7 +1697,7 @@ function renderAssetsPanel(){
     list.innerHTML = '<div class="empty">no snapshots yet — tap "Save snapshot" above whenever you want to log a net-worth point in time</div>';
   } else {
     list.innerHTML = [...data.assetSnapshots].reverse().slice(0,8).map(s => `
-      <div class="snap-row"><span>${s.date}</span><span>${Object.entries(s.totals).map(([c,v])=>`${CUR_SYMBOLS[c]||''}${fmt(v)}`).join('  ·  ')}${s.combined != null ? `  ·  net ${CUR_SYMBOLS[s.primary]||s.primary||''}${fmt(s.combined)}` : ''}</span></div>
+      <div class="snap-row"><span>${s.date}</span><span>${Object.entries(s.totals).map(([c,v])=>`${CUR_SYMBOLS[c]||''}${fmt(v)}`).join('  ·  ')}${s.combined != null ? `  ·  net ${CUR_SYMBOLS[s.primary]||s.primary||''}${fmt(s.combined)}` : ''}${s.debtsCombined > 0 ? `  ·  owed ${CUR_SYMBOLS[s.primary]||s.primary||''}${fmt(s.debtsCombined)}` : ''}</span></div>
     `).join('');
   }
 }
@@ -1637,8 +1731,9 @@ function renderFxRows(){
   const cs = [...new Set([...data.assets.map(a => a.cur || prim), ...data.debts.map(d => d.cur || prim)])].filter(c => c !== prim);
   document.getElementById('fxRates').innerHTML = cs.length
     ? `<div style="font-size:12px;color:var(--ink-soft);font-weight:600;margin-bottom:4px;">Your exchange rates</div>` +
-      cs.map(c => `<div class="fx-row"><span>1 ${CUR_SYMBOLS[c]||c} =</span><input type="number" inputmode="decimal" step="any" placeholder="0" data-fx="${c}" value="${data.fxRates[c]||''}"><span>${CUR_SYMBOLS[prim]||prim}</span></div>`).join('')
+      cs.map(c => `<div class="fx-row"><span>1 ${CUR_SYMBOLS[c]||c} =</span><input type="number" inputmode="decimal" step="any" placeholder="0" data-fx="${c}" value="${data.fxRates[c]||''}"><span>${CUR_SYMBOLS[prim]||prim}</span>${data.fxManual[c] ? '<span class="fx-tag">your rate</span>' : ''}</div>`).join('')
     : `<div style="font-size:12.5px;color:var(--ink-soft);">Everything is in ${CUR_SYMBOLS[prim]||prim}, so no exchange rates are needed.</div>`;
+  renderFxStatus();
 }
 function renderNetWorth(){
   const w = wealthTotals();
@@ -1798,6 +1893,9 @@ document.addEventListener('input', (e) => {
   const c = e.target.dataset && e.target.dataset.fx;
   if(!c) return;
   data.fxRates[c] = e.target.value === '' ? 0 : Number(e.target.value);
+  if(e.target.value !== '') data.fxManual[c] = true; else delete data.fxManual[c];
+  const row = e.target.closest('.fx-row');
+  if(row && !row.querySelector('.fx-tag') && data.fxManual[c]) row.insertAdjacentHTML('beforeend', '<span class="fx-tag">your rate</span>');
   renderNetWorth(); renderDebtSummary(); scheduleSave();
 });
 
@@ -1918,7 +2016,7 @@ function runSearch(raw){
     });
   });
   data.transactions.forEach(t => {
-    if(hit(t.description, t.amount) || hit(t.category, 0)) out.push({ ico:'🔄', title: t.description, sub: `${t.date} · ${t.category} · imported`, amount: t.amount, dir: t.dir, month: t.monthKey, tab: 'budget', ord: t.date });
+    if(hit(t.description, t.amount) || hit(t.category, 0)) out.push({ ico:'🔄', title: t.description, sub: `${t.date} · ${t.category} · ${t.source === 'manual' ? 'added by you' : 'imported'}`, amount: t.amount, dir: t.dir, month: t.monthKey, tab: 'budget', ord: t.date });
   });
   data.assets.forEach(a => { if(Number(a.amount) > 0 && hit(a.label, a.amount)) out.push({ ico:'🏦', title: a.label, sub: 'Account', amount: a.amount, cur: a.cur, tab: 'assets', ord: '0' }); });
   data.debts.forEach(d => { if(hit(d.label, d.balance, d.minPayment)) out.push({ ico:'💳', title: d.label || 'Debt', sub: 'Debt', amount: d.balance, cur: d.cur, dir:'out', tab: 'assets', ord: '0' }); });
@@ -1960,7 +2058,94 @@ document.getElementById('billRemindSelect').addEventListener('change', (e) => {
   data.billRemindDays = Number(e.target.value); scheduleSave(); renderBillsDue();
 });
 // the app can stay open for days: refresh date-based things when it comes back to the foreground
-document.addEventListener('visibilitychange', () => { if(!document.hidden && data){ renderBillsDue(); renderBackupUI(); } });
+document.addEventListener('visibilitychange', () => { if(!document.hidden && data){ renderBillsDue(); renderBackupUI(); maybeAutoRefreshRates(); } });
+
+/* ---------- live exchange rates ---------- */
+const FX_ISO = { '£':'GBP', '$':'USD', 'N':'NGN', '€':'EUR' };
+let fxBusy = false, fxSessionChecked = false, fxLastTry = 0;
+
+async function fxFetchJson(url, ms){
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), ms || 10000);
+  try{
+    const r = await fetch(url, { signal: ctl.signal, cache: 'no-store' });
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    return await r.json();
+  } finally { clearTimeout(timer); }
+}
+// 1 unit of the base currency in every other currency, from the first service that answers
+async function fxGetRates(baseIso){
+  const b = baseIso.toLowerCase();
+  const fromCurrencyApi = (j) => { if(!j || !j[b]) throw new Error('unexpected response'); return { rates: j[b], date: j.date || '' }; };
+  const attempts = [
+    { name:'currency-api (jsDelivr)', url:`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/${b}.min.json`, parse: fromCurrencyApi },
+    { name:'currency-api (Cloudflare)', url:`https://latest.currency-api.pages.dev/v1/currencies/${b}.min.json`, parse: fromCurrencyApi },
+    { name:'Exchange Rate API', url:`https://open.er-api.com/v6/latest/${baseIso}`, parse: (j) => {
+        if(!j || j.result !== 'success') throw new Error('rate service error');
+        const rates = {}; Object.keys(j.rates).forEach(k => { rates[k.toLowerCase()] = j.rates[k]; });
+        return { rates, date: j.time_last_update_utc ? new Date(j.time_last_update_utc).toISOString().slice(0,10) : '' };
+      } }
+  ];
+  for(const a of attempts){
+    try{ const out = a.parse(await fxFetchJson(a.url)); out.source = a.name; return out; }catch(e){ /* try the next one */ }
+  }
+  throw new Error('no rate service reachable');
+}
+function currenciesInUse(){
+  const prim = data.primaryCurrency || '£';
+  return [...new Set([...data.assets.map(a => a.cur || prim), ...data.debts.map(d => d.cur || prim)])].filter(c => c !== prim);
+}
+async function fetchLiveRates(opts){
+  const force = !!(opts && opts.force);
+  if(fxBusy || !data) return;
+  const prim = data.primaryCurrency || '£', cs = currenciesInUse();
+  const btn = document.getElementById('fxRefreshBtn'), status = document.getElementById('fxStatus');
+  if(!cs.length){ if(force) status.textContent = `Everything is in ${CUR_SYMBOLS[prim]||prim}, so there's nothing to convert.`; return; }
+  fxBusy = true; fxLastTry = Date.now(); btn.disabled = true; status.textContent = 'Fetching today\'s rates…';
+  try{
+    const { rates, date, source } = await fxGetRates(FX_ISO[prim] || 'GBP');
+    const missing = [];
+    cs.forEach(c => {
+      const perBase = Number(rates[(FX_ISO[c] || '').toLowerCase()]);
+      if(!(perBase > 0)){ missing.push(c); return; }
+      if(!force && data.fxManual[c]) return;                  // automatic updates never overwrite a rate you typed
+      data.fxRates[c] = Number((1 / perBase).toPrecision(6));
+      delete data.fxManual[c];
+    });
+    data.fxUpdated = date || new Date().toISOString().slice(0,10);
+    data.fxSource = source; data.fxFetchedAt = Date.now();
+    if(data.fxAuto === null) data.fxAuto = true;              // first successful fetch switches daily updates on; the tick box turns them off
+    scheduleSave();
+    renderFxRows(); renderNetWorth(); renderDebtSummary(); renderOverview();
+    if(missing.length) status.textContent = `No live rate found for ${missing.map(c => CUR_SYMBOLS[c]||c).join(', ')}. Type one in instead.`;
+  }catch(e){
+    renderFxStatus(`Couldn't reach a rate service${navigator.onLine === false ? ' (you look to be offline)' : ''}. Your saved rates are unchanged.`);
+  }finally{
+    fxBusy = false; btn.disabled = false;
+  }
+}
+function renderFxStatus(errorText){
+  const status = document.getElementById('fxStatus');
+  if(!status || !data) return;
+  document.getElementById('fxAutoToggle').checked = !!data.fxAuto;
+  if(errorText){ status.textContent = errorText; return; }
+  if(!currenciesInUse().length){ status.textContent = 'No other currencies in use, so no rates are needed.'; return; }
+  if(!data.fxUpdated){ status.textContent = 'Rates here are ones you typed. Tap to fetch today\'s rates.'; return; }
+  const ageDays = Math.floor((Date.now() - new Date(data.fxUpdated + 'T12:00:00').getTime()) / 86400000);
+  const attribution = data.fxSource === 'Exchange Rate API' ? ' · <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener">Rates By Exchange Rate API</a>' : '';
+  status.innerHTML = `Live rates from ${new Date(data.fxUpdated + 'T12:00:00').toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'})}` +
+    (ageDays >= 7 ? ` <b style="color:#C0432E;">(${ageDays} days old)</b>` : '') + ` · ${data.fxSource}${attribution}`;
+}
+function maybeAutoRefreshRates(){
+  if(!data || !data.fxAuto || fxBusy) return;
+  if(Date.now() - data.fxFetchedAt < 20 * 3600000) return;     // already refreshed today
+  if(Date.now() - fxLastTry < 10 * 60000) return;              // don't retry in a loop after a failure
+  fetchLiveRates();
+}
+document.getElementById('fxRefreshBtn').addEventListener('click', () => fetchLiveRates({ force:true }));
+document.getElementById('fxAutoToggle').addEventListener('change', (e) => {
+  data.fxAuto = e.target.checked; scheduleSave();
+  if(data.fxAuto) fetchLiveRates();
+});
 
 function renderTrends(){
   const keys = sortedMonthKeys();
@@ -1984,18 +2169,40 @@ function renderTrends(){
   const nwWrap = document.getElementById('netWorthWrap');
   if(netWorthChart) netWorthChart.destroy();
   if(snaps.length === 0){
-    nwWrap.innerHTML = '<div class="empty">save a snapshot from the Assets tab to build this chart over time</div>';
+    document.getElementById('nwChartEyebrow').textContent = 'From your saved snapshots';
+    nwWrap.innerHTML = '<div class="empty">save a snapshot from the Wealth tab to build this chart over time</div>';
   } else {
     if(!document.getElementById('netWorthChart')){ nwWrap.innerHTML = '<canvas id="netWorthChart"></canvas>'; }
-    const currencies = [...new Set(snaps.flatMap(s => Object.keys(s.totals)))];
-    const palette = ['#2F9E7A','#FF7A59','#E3A93A','#5B8FBF'];
-    netWorthChart = new Chart(document.getElementById('netWorthChart'), {
-      type:'line',
-      data:{ labels: snaps.map(s=>s.date), datasets: currencies.map((c,i)=>({
-        label:c, data: snaps.map(s => s.totals[c]||0), borderColor:palette[i%palette.length], backgroundColor:palette[i%palette.length], tension:.3
-      })) },
-      options:{ plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11.5}}}}, scales:{ y:{ ticks:{font:{family:'Inter',size:11}} }, x:{ ticks:{font:{family:'Inter',size:11}} } } }
-    });
+    const usable = (s) => s.combined != null && (s.primary || data.primaryCurrency) === data.primaryCurrency;
+    const opts = (fmtTick) => ({ plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11.5}}}}, spanGaps:true,
+      scales:{ y:{ ticks:{font:{family:'Inter',size:11}, callback: fmtTick} }, x:{ ticks:{font:{family:'Inter',size:11}} } } });
+    const eyebrow = document.getElementById('nwChartEyebrow');
+    if(snaps.some(usable)){
+      // the real net worth: assets minus debts, all in your primary currency
+      const pick = (key) => snaps.map(s => usable(s) ? s[key] : null);
+      eyebrow.textContent = 'Assets minus debts, in ' + (CUR_SYMBOLS[data.primaryCurrency] || data.primaryCurrency);
+      netWorthChart = new Chart(document.getElementById('netWorthChart'), {
+        type:'line',
+        data:{ labels: snaps.map(s=>s.date), datasets:[
+          {label:'Net worth', data:pick('combined'), borderColor:'#2F9E7A', backgroundColor:'#2F9E7A', tension:.3, borderWidth:3},
+          {label:'Assets', data:pick('assetsCombined'), borderColor:'#5B8FBF', backgroundColor:'#5B8FBF', tension:.3, borderWidth:1.5},
+          {label:'Debts', data:pick('debtsCombined'), borderColor:'#FF7A59', backgroundColor:'#FF7A59', tension:.3, borderWidth:1.5, borderDash:[5,4]}
+        ] },
+        options: opts((v) => fmtP(v))
+      });
+    } else {
+      // no combined figure yet (older snapshots, or a currency without a rate): show assets per currency
+      eyebrow.textContent = 'Assets by currency. Set exchange rates to see net worth';
+      const currencies = [...new Set(snaps.flatMap(s => Object.keys(s.totals)))];
+      const palette = ['#2F9E7A','#FF7A59','#E3A93A','#5B8FBF'];
+      netWorthChart = new Chart(document.getElementById('netWorthChart'), {
+        type:'line',
+        data:{ labels: snaps.map(s=>s.date), datasets: currencies.map((c,i)=>({
+          label:c, data: snaps.map(s => s.totals[c]||0), borderColor:palette[i%palette.length], backgroundColor:palette[i%palette.length], tension:.3
+        })) },
+        options: opts(undefined)
+      });
+    }
   }
 }
 
@@ -2013,15 +2220,20 @@ function render(){
   renderTrends();
   renderBillsPanel();
   renderBackupUI();
+  if(!fxSessionChecked){ fxSessionChecked = true; maybeAutoRefreshRates(); }
 }
 
+const tabScroll = {};   // where you were on each tab, so switching back puts you in the same place
 document.querySelectorAll('nav.tabs button').forEach(btn => {
   btn.addEventListener('click', () => {
+    const prev = document.body.dataset.tab, next = btn.dataset.tab, same = prev === next;
+    if(prev) tabScroll[prev] = window.scrollY || window.pageYOffset || 0;
     document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.remove('active'));
     document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
     btn.classList.add('active');
-    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
-    window.scrollTo({top:0});
+    document.getElementById('panel-'+next).classList.add('active');
+    document.body.dataset.tab = next;
+    window.scrollTo({ top: same ? 0 : (tabScroll[next] || 0), behavior: same ? 'smooth' : 'auto' });   // tapping the current tab again jumps to the top
     if(btn.dataset.tab === 'overview') renderOverview();
     if(btn.dataset.tab === 'payslips'){ renderPayslipsPanel(); renderTaxCard(); renderTaxEssentials(); }
     if(btn.dataset.tab === 'trends') renderTrends();
@@ -2037,13 +2249,13 @@ document.addEventListener('input', (e) => {
     if(!row) return;
     const numericFields = ['amount','limit','gross','deductions','balance','rate','minPayment','target','saved','day','month'];
     row[t.dataset.field] = numericFields.includes(t.dataset.field) ? (t.value===''?0:Number(t.value)) : t.value;
-    if(k === 'debts'){ renderNetWorth(); renderDebtSummary(); if(t.dataset.field === 'cur') renderFxRows(); scheduleSave(); return; }
+    if(k === 'debts'){ renderNetWorth(); renderDebtSummary(); if(t.dataset.field === 'cur'){ renderFxRows(); if(data.fxAuto) fetchLiveRates(); } scheduleSave(); return; }
     if(k === 'goals'){ updateGoalProgress(); scheduleSave(); return; }
     if(k === 'bills'){
       if(t.dataset.field === 'freq') renderBillsPanel(); else { renderBillsSummary(); renderBillsDue(); }
       scheduleSave(); return;
     }
-    if(k === 'assets'){ renderNetWorth(); if(t.dataset.field === 'cur') renderFxRows(); }
+    if(k === 'assets'){ renderNetWorth(); if(t.dataset.field === 'cur'){ renderFxRows(); if(data.fxAuto) fetchLiveRates(); } }
     renderTotals(); renderOverview();
     if(t.dataset.key === 'payslips') renderPayslipsPanel();
     scheduleSave();
@@ -2578,10 +2790,11 @@ document.getElementById('settingsBtn').addEventListener('click', async () => {
 document.getElementById('primaryCurrencySelect').addEventListener('change', (e) => {
   const hadRates = Object.keys(data.fxRates).length > 0;
   data.primaryCurrency = e.target.value;
-  data.fxRates = {};   // rates were relative to the old primary currency
+  data.fxRates = {}; data.fxManual = {}; data.fxUpdated = ''; data.fxSource = ''; data.fxFetchedAt = 0;   // rates were relative to the old primary currency
   scheduleSave();
   render();
-  if(hadRates) exportStatus('Currency changed. Re-enter your exchange rates in the Wealth tab.');
+  if(data.fxAuto) fetchLiveRates({ force:true });
+  else if(hadRates) exportStatus('Currency changed. Get live rates or re-enter them in the Wealth tab.');
 });
 document.getElementById('closeSettings').addEventListener('click', () => document.getElementById('settingsBackdrop').classList.remove('show'));
 document.getElementById('lockToggle').addEventListener('change', async (e) => {
@@ -2677,13 +2890,136 @@ if('serviceWorker' in navigator){
     }, 150);
   });
   // tap outside a sheet (or press Escape) to close it
-  ['settingsBackdrop','importBackdrop','searchBackdrop'].forEach(id => {
+  ['settingsBackdrop','importBackdrop','searchBackdrop','quickBackdrop'].forEach(id => {
     const el = document.getElementById(id);
     el.addEventListener('click', (e) => { if(e.target === el) el.classList.remove('show'); });
   });
   document.addEventListener('keydown', (e) => {
     if(e.key === 'Escape') document.querySelectorAll('.modal-backdrop.show:not(#pwBackdrop)').forEach(el => el.classList.remove('show'));
   });
+})();
+
+/* ---------- navigation & feel: collapsible cards, set-up checklist, quick add ---------- */
+(function collapsibleCards(){
+  const KEY = 'ledger-ui-collapsed';
+  let saved = {}; try{ saved = JSON.parse(localStorage.getItem(KEY)) || {}; }catch(e){}
+  const DEFAULT_COLLAPSED = ['know-your-numbers', 'recent-snapshots'];   // reference material starts folded away
+  document.querySelectorAll('.panel .card').forEach(card => {
+    const head = Array.from(card.children).find(c => c.classList.contains('card-head'));
+    if(!head) return;
+    const h2 = head.querySelector('h2');
+    const slug = ((h2 ? h2.textContent : card.id) || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().replace(/ /g, '-');
+    const chev = document.createElement('span'); chev.className = 'chev'; chev.textContent = '›'; chev.setAttribute('aria-hidden', 'true');
+    head.appendChild(chev);
+    head.setAttribute('role', 'button'); head.setAttribute('tabindex', '0');
+    const set = (c) => { card.classList.toggle('collapsed', c); head.setAttribute('aria-expanded', String(!c)); };
+    set(slug in saved ? !!saved[slug] : DEFAULT_COLLAPSED.includes(slug));
+    const toggle = () => {
+      const c = !card.classList.contains('collapsed'); set(c); saved[slug] = c;
+      try{ localStorage.setItem(KEY, JSON.stringify(saved)); }catch(e){}
+    };
+    head.addEventListener('click', (e) => { if(e.target.closest('button, select, input, a, label')) return; toggle(); });
+    head.addEventListener('keydown', (e) => { if((e.key === 'Enter' || e.key === ' ') && e.target === head){ e.preventDefault(); toggle(); } });
+  });
+})();
+
+function goTo(tab, anchorId){
+  document.querySelector(`nav.tabs button[data-tab="${tab}"]`).click();
+  setTimeout(() => {
+    const el = anchorId && document.getElementById(anchorId);
+    const card = el && el.closest('.card');
+    if(card){ card.classList.remove('collapsed'); card.scrollIntoView({ behavior:'smooth', block:'start' }); }
+  }, 60);
+}
+function renderWelcome(){
+  const card = document.getElementById('welcomeCard');
+  if(!card || !data) return;
+  let dismissed = false; try{ dismissed = localStorage.getItem('ledger-welcome-dismissed') === '1'; }catch(e){}
+  const nz = (a) => a.some(r => Number(r.amount) > 0), months = Object.values(data.months);
+  welcomeSteps = [
+    { done: months.some(m => nz(m.income)), t:'Add your income', s:'Your salary or any other money coming in', go: () => goTo('budget', 'incomeBody') },
+    { done: months.some(m => nz(m.expenses)), t:'Add what you spend', s:'Rent, bills, groceries. Or import a Revolut statement in Settings', go: () => goTo('budget', 'expenseBody') },
+    { done: nz(data.assets), t:'Add your accounts', s:'Bank, savings and investments, to see your net worth', go: () => goTo('assets', 'assetsBody') }
+  ];
+  const done = welcomeSteps.filter(x => x.done).length;
+  if(dismissed || done === welcomeSteps.length){ card.style.display = 'none'; return; }
+  card.style.display = '';
+  document.getElementById('welcomeEyebrow').textContent = `${done} of ${welcomeSteps.length} done`;
+  document.getElementById('welcomeSteps').innerHTML = welcomeSteps.map((x, i) => `
+    <div class="step-row ${x.done ? 'done' : ''}"><div class="step-dot">${x.done ? '✓' : ''}</div>
+      <div class="st"><b>${x.t}</b><span>${x.s}</span></div>${x.done ? '' : `<button data-step="${i}">Go</button>`}</div>`).join('');
+}
+document.getElementById('welcomeSteps').addEventListener('click', (e) => {
+  const i = e.target.closest('[data-step]')?.dataset.step;
+  if(i !== undefined && welcomeSteps[i]) welcomeSteps[i].go();
+});
+document.getElementById('welcomeDismiss').addEventListener('click', () => {
+  try{ localStorage.setItem('ledger-welcome-dismissed', '1'); }catch(e){}
+  document.getElementById('welcomeCard').style.display = 'none';
+});
+
+function showUndo(text, fn){
+  const bar = document.getElementById('undoBar');
+  document.getElementById('undoText').textContent = text;
+  bar.style.display = '';
+  document.getElementById('undoBtn').onclick = () => { clearTimeout(undoTimer); bar.style.display = 'none'; fn(); };
+  clearTimeout(undoTimer);
+  undoTimer = setTimeout(() => { bar.style.display = 'none'; }, 6000);
+}
+
+(function quickAdd(){
+  const $ = (id) => document.getElementById(id);
+  const SEC = { expense:'expenses', income:'income', savings:'savings' };
+  let type = 'expense', last = {};
+  try{ last = JSON.parse(localStorage.getItem('ledger-qa-last')) || {}; }catch(e){}
+  const bd = $('quickBackdrop');
+  const setType = (t) => {
+    type = t;
+    document.querySelectorAll('#qaType button').forEach(b => b.classList.toggle('active', b.dataset.type === t));
+    const arr = currentMonth()[SEC[t]], sel = $('qaCategory');
+    const labels = [...new Set(arr.map(r => r.label).filter(Boolean))];
+    sel.innerHTML = labels.map(l => `<option value="${escapeAttr(l)}">${escapeHtml(l)}</option>`).join('') + '<option value="__new__">＋ New category…</option>';
+    sel.value = last[t] && labels.includes(last[t]) ? last[t] : (labels[0] || '__new__');
+    $('qaNewCat').style.display = sel.value === '__new__' ? '' : 'none';
+  };
+  const open = () => {
+    $('qaAmount').value = ''; $('qaNote').value = ''; $('qaNewCat').value = ''; $('qaError').textContent = '';
+    setType(last.type && SEC[last.type] ? last.type : 'expense');
+    $('qaMonthNote').textContent = 'Adding to ' + monthLabel(data.currentMonthKey) + (data.currentMonthKey === monthKeyNow() ? '' : ' (not the current month)');
+    bd.classList.add('show');
+    setTimeout(() => $('qaAmount').focus(), 80);
+  };
+  const close = () => bd.classList.remove('show');
+  const add = () => {
+    const val = Math.round((Number($('qaAmount').value) || 0) * 100) / 100;
+    if(!(val > 0)){ $('qaError').textContent = 'Enter an amount above zero.'; return; }
+    let cat = $('qaCategory').value;
+    if(cat === '__new__'){ cat = $('qaNewCat').value.trim(); if(!cat){ $('qaError').textContent = 'Give the new category a name.'; return; } }
+    const sec = SEC[type], arr = currentMonth()[sec], monthKey = data.currentMonthKey;
+    let row = arr.find(r => r.label === cat), created = false;
+    if(!row){ row = { id:uid(), label:cat, amount:0 }; if(sec === 'expenses') row.limit = 0; arr.push(row); created = true; }
+    row.amount = Math.round(((Number(row.amount) || 0) + val) * 100) / 100;
+    const tx = { id:uid(), key:'manual|' + uid(), date:new Date().toISOString().slice(0,10), description:$('qaNote').value.trim() || cat,
+      amount:val, dir: type === 'income' ? 'in' : type === 'expense' ? 'out' : 'save', section:sec, category:cat, monthKey, source:'manual' };
+    data.transactions.push(tx);
+    if(data.transactions.length > 5000) data.transactions = data.transactions.slice(-5000);
+    last.type = type; last[type] = cat;
+    try{ localStorage.setItem('ledger-qa-last', JSON.stringify(last)); }catch(e){}
+    scheduleSave(); render(); close();
+    showUndo(`Added ${fmtP(val)} to ${cat}`, () => {
+      row.amount = Math.round(((Number(row.amount) || 0) - val) * 100) / 100;
+      if(created && row.amount <= 0){ const k = arr.indexOf(row); if(k > -1) arr.splice(k, 1); }
+      data.transactions = data.transactions.filter(t => t.id !== tx.id);
+      scheduleSave(); render();
+    });
+  };
+  $('fab').addEventListener('click', open);
+  $('closeQuick').addEventListener('click', close);
+  $('qaCancel').addEventListener('click', close);
+  $('qaAdd').addEventListener('click', add);
+  $('qaType').addEventListener('click', (e) => { const b = e.target.closest('button[data-type]'); if(b) setType(b.dataset.type); });
+  $('qaCategory').addEventListener('change', (e) => { $('qaNewCat').style.display = e.target.value === '__new__' ? '' : 'none'; if(e.target.value === '__new__') $('qaNewCat').focus(); });
+  ['qaAmount','qaNote','qaNewCat'].forEach(id => $(id).addEventListener('keydown', (e) => { if(e.key === 'Enter') add(); }));
 })();
 
 armAutoLock();
