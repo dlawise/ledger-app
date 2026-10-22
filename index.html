@@ -347,6 +347,90 @@
   @media (prefers-reduced-motion: reduce){
     *{animation:none !important;transition:none !important;}
   }
+  /* ===== wealth: debts, goals, net worth ===== */
+  .fin-row{padding:12px 18px;border-top:1px solid var(--line);}
+  .fin-row:first-child{border-top:none;}
+  .fin-top{display:flex;align-items:center;gap:6px;}
+  .fin-top input.fin-label{
+    flex:1;min-width:0;background:none;border:none;font-family:'Inter',sans-serif;font-size:16px;font-weight:600;
+    color:var(--ink);padding:6px 0;
+  }
+  .fin-top input.fin-label:focus{outline:none;border-bottom:1.5px solid var(--teal);}
+  .fin-top .delbtn{background:none;border:none;color:#C9C2B0;cursor:pointer;font-size:16px;padding:10px 12px;border-radius:8px;}
+  .fin-top .delbtn:hover{color:var(--coral);}
+  .fin-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;}
+  .fin-fields .wide{grid-column:1 / -1;}
+  .fin-fields label{
+    display:flex;flex-direction:column;gap:4px;font-size:10.5px;font-weight:700;color:var(--ink-soft);
+    text-transform:uppercase;letter-spacing:.04em;min-width:0;
+  }
+  .fin-fields input,.fin-fields select{
+    border:1px solid var(--line);border-radius:8px;padding:9px 10px;font-size:16px;font-family:'Inter',sans-serif;
+    width:100%;min-width:0;background:var(--bg);color:var(--ink);font-variant-numeric:tabular-nums;font-weight:500;text-transform:none;letter-spacing:0;
+  }
+  .fin-fields input:focus,.fin-fields select:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 2px var(--teal-soft);}
+  .fin-fields .bal-wrap{display:flex;gap:6px;}
+  .fin-fields .bal-wrap select{width:64px;flex-shrink:0;padding:9px 4px;}
+  .goal-prog{margin-top:12px;}
+  .goal-prog .line{display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:6px;}
+  .goal-prog .sub{font-size:12.5px;color:var(--ink-soft);margin-top:6px;line-height:1.5;}
+  .fx-row{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13.5px;}
+  .fx-row input{
+    width:120px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:16px;font-family:'Inter',sans-serif;
+    background:var(--bg);text-align:right;font-variant-numeric:tabular-nums;
+  }
+  /* ===== backup reminders ===== */
+  .backup-banner{
+    display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;
+    background:var(--coral-soft);border-radius:14px;padding:14px 16px;margin-bottom:14px;box-shadow:var(--shadow);
+  }
+  .backup-banner .bb-text{flex:1;min-width:200px;font-size:13px;line-height:1.5;display:flex;flex-direction:column;gap:2px;}
+  .backup-banner .bb-text b{font-size:14px;color:#C0432E;}
+  .backup-banner .bb-actions{display:flex;gap:8px;}
+  .backup-banner button{
+    border:none;border-radius:10px;padding:11px 14px;font-size:13px;font-weight:600;cursor:pointer;
+    background:var(--teal);color:#fff;font-family:'Inter',sans-serif;
+  }
+  .backup-banner button.ghost{background:transparent;color:var(--ink-soft);}
+  .gear-btn{position:relative;}
+  .gear-btn.due::after{
+    content:"";position:absolute;top:7px;right:7px;width:11px;height:11px;border-radius:50%;
+    background:var(--coral);border:2px solid #fff;
+  }
+  .pw-input{
+    width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;margin-top:12px;
+    font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);
+  }
+  .pw-input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 2px var(--teal-soft);}
+  /* ===== bills + search ===== */
+  .head-actions{display:flex;gap:8px;}
+  nav.tabs button{position:relative;}
+  .nav-badge{
+    position:absolute;top:2px;left:calc(50% + 6px);min-width:17px;height:17px;border-radius:9px;background:var(--coral);
+    color:#fff;font-size:10px;line-height:17px;text-align:center;padding:0 4px;font-weight:700;font-style:normal;
+  }
+  .bill-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 18px;border-top:1px solid var(--line);}
+  .bill-row:first-child{border-top:none;}
+  .bill-row .bn{font-size:14px;font-weight:600;}
+  .bill-row .bs{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+  .bill-row .bw{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+  .bill-row .chip{font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:20px;background:var(--teal-soft);color:var(--teal-dark);white-space:nowrap;}
+  .bill-row.urgent .chip{background:var(--coral-soft);color:#C0432E;}
+  .bill-row.paid{opacity:.6;}
+  .bill-row.paid .chip{background:#EEE9DC;color:var(--ink-soft);}
+  .bill-row button{
+    border:1px solid var(--line);background:var(--card);border-radius:9px;padding:8px 11px;font-size:12.5px;font-weight:600;
+    color:var(--teal-dark);cursor:pointer;font-family:'Inter',sans-serif;
+  }
+  .sr-row{display:flex;align-items:center;gap:10px;padding:11px 4px;border-top:1px solid var(--line);cursor:pointer;}
+  .sr-row:first-child{border-top:none;}
+  .sr-row:active{background:var(--teal-soft);}
+  .sr-ico{font-size:18px;width:26px;text-align:center;flex-shrink:0;}
+  .sr-main{flex:1;min-width:0;}
+  .sr-title{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .sr-sub{font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
+  .sr-amt{font-weight:700;font-size:13.5px;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .sr-amt.in{color:var(--teal-dark);} .sr-amt.out{color:#C0432E;}
 </style>
 </head>
 <body>
@@ -357,7 +441,10 @@
         <h1>👛 Ledger</h1>
         <div class="sub">a friendly place to watch your money move</div>
       </div>
-      <button id="settingsBtn" class="gear-btn" title="Settings" aria-label="Settings">⚙️</button>
+      <div class="head-actions">
+        <button id="searchBtn" class="gear-btn" title="Search" aria-label="Search">🔍</button>
+        <button id="settingsBtn" class="gear-btn" title="Settings" aria-label="Settings">⚙️</button>
+      </div>
     </div>
 
     <div class="month-switcher">
@@ -373,16 +460,24 @@
   </header>
 
   <nav class="tabs">
-    <button data-tab="overview" class="active"><span class="ico">🏠</span><span class="lbl">Overview</span></button>
+    <button data-tab="overview" class="active"><span class="ico">🏠</span><span class="lbl">Overview</span><span class="nav-badge" id="navBadge" style="display:none;"></span></button>
     <button data-tab="budget"><span class="ico">📋</span><span class="lbl">Budget</span></button>
-    <button data-tab="payslips"><span class="ico">💼</span><span class="lbl">Payslips</span></button>
-    <button data-tab="assets"><span class="ico">🏦</span><span class="lbl">Assets</span></button>
+    <button data-tab="payslips"><span class="ico">💼</span><span class="lbl">Pay &amp; Tax</span></button>
+    <button data-tab="assets"><span class="ico">🏦</span><span class="lbl">Wealth</span></button>
     <button data-tab="trends"><span class="ico">📈</span><span class="lbl">Trends</span></button>
   </nav>
 
   <div class="panel active" id="panel-overview">
+    <div class="backup-banner" id="backupBanner" style="display:none;">
+      <div class="bb-text"><b>Time for a backup</b><span id="backupBannerText"></span></div>
+      <div class="bb-actions"><button id="backupNowBtn">Back up now</button><button class="ghost" id="backupLaterBtn">Later</button></div>
+    </div>
     <div class="stat-grid" id="statGrid"></div>
     <div id="tipsWrap"></div>
+    <div class="card" id="billsDueCard" style="display:none;">
+      <div class="card-head"><h2>📌 Bills due soon</h2><span class="eyebrow" id="billsDueEyebrow">Next 14 days</span></div>
+      <div id="billsDueList"></div>
+    </div>
     <div class="card" id="budgetCard" style="display:none;">
       <div class="card-head"><h2>🎯 Budget vs. actual</h2><span class="eyebrow">Categories with a limit set</span></div>
       <div id="budgetList"></div>
@@ -413,6 +508,13 @@
       <table><tbody id="savingsBody"></tbody></table>
       <div class="add-row" data-add="savings">+ add savings line</div>
       <div class="card-total pos"><span>Total savings</span><span id="savingsTotal">0</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>📌 Recurring bills</h2><span class="eyebrow" id="billsEyebrow"></span></div>
+      <div id="billsList"></div>
+      <div class="add-row" data-add="bills">+ add bill</div>
+      <div id="billsSummary" class="tips-note" style="padding:10px 18px 14px;margin:0;"></div>
     </div>
 
     <div class="card">
@@ -462,9 +564,48 @@
       </div>
       <div class="tips-note" style="padding:10px 18px 16px;margin:0;">Estimate only, using simplified, fully-editable bands modeled on rest-of-UK income tax and employee National Insurance — not tax advice. Real tax depends on your tax code, region (Scotland uses different bands), pension contributions, student loan repayments, and other factors, and thresholds change most tax years. Update the numbers above to match the current year or your situation, and verify with HMRC or a tax professional before relying on this for filing or planning decisions.</div>
     </div>
+    <div class="card">
+      <div class="card-head"><h2>📅 Tax year &amp; key dates</h2><span class="eyebrow" id="taxYearLabel"></span></div>
+      <div style="padding:2px 18px 14px;">
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;"><span id="taxYearDays" style="font-weight:600;"></span><span id="taxYearPct" style="color:var(--ink-soft);"></span></div>
+        <div class="budget-track"><div class="budget-fill" id="taxYearBar" style="width:0%"></div></div>
+      </div>
+      <div id="taxDeadlines"></div>
+      <div class="tips-note" style="padding:8px 18px 14px;margin:0;">Self Assessment dates only matter if you file a tax return (for example self-employment, rental or large investment income). Most employees taxed through PAYE don't need to.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>🧾 This tax year's allowances</h2><span class="eyebrow">Resets itself on 6 April</span></div>
+      <div style="padding:2px 18px 6px;">
+        <label style="font-size:12px;color:var(--ink-soft);display:block;margin-bottom:6px;">Paid into ISAs so far this tax year</label>
+        <input type="number" inputmode="decimal" id="isaPaid" class="tax-gross-input" step="any" placeholder="0">
+        <div class="budget-track" style="margin-top:12px;"><div class="budget-fill" id="isaBar" style="width:0%"></div></div>
+        <div id="isaResult" style="font-size:13px;margin-top:8px;"></div>
+      </div>
+      <div style="padding:14px 18px 6px;border-top:1px solid var(--line);margin-top:14px;">
+        <label style="font-size:12px;color:var(--ink-soft);display:block;margin-bottom:6px;">Savings interest earned so far (outside ISAs)</label>
+        <input type="number" inputmode="decimal" id="savInterest" class="tax-gross-input" step="any" placeholder="0">
+        <div id="savResult" style="font-size:13px;margin-top:8px;line-height:1.5;"></div>
+      </div>
+      <div class="tips-note" style="padding:8px 18px 14px;margin:0;">The savings check uses your estimated income from the tax estimate above to pick your Personal Savings Allowance, and ignores the 0% starting rate for savings (available if your other income is low). Treat it as a guide.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>📖 Know your numbers</h2><span class="eyebrow" id="factsVerified"></span></div>
+      <div id="taxFacts" style="padding:0 18px 4px;"></div>
+      <div class="tips-note" style="padding:8px 18px 16px;margin:0;">These are the standard England, Wales &amp; Northern Ireland figures and they change by tax year. Always confirm on GOV.UK or with an adviser before acting on them. This is information, not tax advice.</div>
+    </div>
   </div>
 
   <div class="panel" id="panel-assets">
+    <div class="card" id="netWorthCard">
+      <div class="card-head"><h2>💎 Net worth</h2><span class="eyebrow">Approximate · uses your own exchange rates</span></div>
+      <div class="stat-grid" id="nwGrid" style="padding:4px 18px 0;margin-bottom:0;"></div>
+      <div id="nwWarn" style="padding:8px 18px 0;font-size:12.5px;color:#C0432E;"></div>
+      <div id="fxRates" style="padding:8px 18px 2px;"></div>
+      <div class="tips-note" style="padding:6px 18px 14px;margin:0;">Rates are ones you type in, so this is a guide rather than a live valuation. Update them whenever you want a fresher figure.</div>
+    </div>
+
     <div class="card">
       <div class="card-head">
         <h2>🏦 Accounts &amp; holdings</h2>
@@ -473,6 +614,26 @@
       <table><tbody id="assetsBody"></tbody></table>
       <div class="add-row" data-add="assets">+ add account</div>
     </div>
+
+    <div class="card">
+      <div class="card-head"><h2>💳 Debts &amp; loans</h2><span class="eyebrow" id="debtsEyebrow"></span></div>
+      <div id="debtsList"></div>
+      <div class="add-row" data-add="debts">+ add debt</div>
+      <div id="debtSummary" style="padding:14px 18px 4px;border-top:1px solid var(--line);">
+        <div class="stat-grid" id="debtStats" style="margin-bottom:12px;"></div>
+        <label style="font-size:12px;color:var(--ink-soft);display:block;margin-bottom:6px;">Extra you could pay each month</label>
+        <input type="number" inputmode="decimal" id="debtExtra" class="tax-gross-input" step="any" placeholder="0">
+        <div id="debtProjection" style="font-size:13px;line-height:1.6;margin-top:10px;"></div>
+        <div class="tips-note" style="margin:8px 0 12px;">Estimate only. It assumes fixed interest rates, no new borrowing and no fees, and sends any extra to the highest-interest debt first (the "avalanche" method), which usually costs least in interest.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>🎯 Savings goals</h2><span class="eyebrow" id="goalsEyebrow"></span></div>
+      <div id="goalsList"></div>
+      <div class="add-row" data-add="goals">+ add goal</div>
+    </div>
+
     <div class="card">
       <div class="card-head"><h2>Recent snapshots</h2><span class="eyebrow">Net worth over time</span></div>
       <div class="snap-list" id="snapList"></div>
@@ -522,6 +683,16 @@
       </select>
     </div>
 
+    <div class="row">
+      <div><div class="label">Highlight bills due within</div><div class="desc">Shown on Overview, with a badge on the tab. Reminders appear while the app is open; a home-screen web app can't send notifications on its own</div></div>
+      <select class="small" id="billRemindSelect">
+        <option value="1">1 day</option>
+        <option value="3">3 days</option>
+        <option value="5">5 days</option>
+        <option value="7">7 days</option>
+      </select>
+    </div>
+
     <h3 class="modal-section-title">💾 Data</h3>
     <div class="row">
       <div><div class="label">Monthly report</div><div class="desc">A clean, printable summary of the selected month</div></div>
@@ -534,6 +705,22 @@
     <div class="row">
       <div><div class="label">Full backup</div><div class="desc">A complete .json copy of everything in the app</div></div>
       <button class="action secondary" id="exportBtn">Save backup</button>
+    </div>
+    <div class="row">
+      <div><div class="label">Backup status</div><div class="desc" id="backupLastDesc"></div></div>
+    </div>
+    <div class="row">
+      <div><div class="label">Remind me to back up</div><div class="desc">Only when you've made changes since the last one</div></div>
+      <select class="small" id="backupRemindSelect">
+        <option value="7">Every week</option>
+        <option value="14">Every 2 weeks</option>
+        <option value="30">Every month</option>
+        <option value="0">Never</option>
+      </select>
+    </div>
+    <div class="row">
+      <div><div class="label">Password-protect backups</div><div class="desc">Encrypts the file. Without this, a backup is readable by anyone who opens it. If you forget the password, that backup can't be opened</div></div>
+      <label class="switch"><input type="checkbox" id="backupEncryptToggle"><span class="slider"></span></label>
     </div>
     <div class="row">
       <div><div class="label">Restore from backup</div><div class="desc">Replaces current data with a saved .json backup</div></div>
@@ -591,9 +778,35 @@
   </div>
 </div>
 
+<!-- SEARCH -->
+<div class="modal-backdrop" id="searchBackdrop">
+  <div class="modal" style="max-width:520px;">
+    <button class="close-x" id="closeSearch" aria-label="Close search">✕</button>
+    <h2>🔍 Search</h2>
+    <input type="search" id="searchInput" class="pw-input" placeholder="A name, or an amount like 900" autocomplete="off" autocapitalize="off" style="margin-top:10px;">
+    <div id="searchMeta" style="font-size:12px;color:var(--ink-soft);margin:10px 0 4px;min-height:16px;"></div>
+    <div id="searchResults" style="max-height:52vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- PASSWORD / CONFIRM MODAL (used for protected backups) -->
+<div class="modal-backdrop" id="pwBackdrop">
+  <div class="modal" style="max-width:380px;">
+    <h2 id="pwTitle">Password</h2>
+    <p id="pwHint" style="font-size:12.5px;color:var(--ink-soft);margin:4px 0 0;line-height:1.5;"></p>
+    <input type="password" id="pwInput" class="pw-input" autocomplete="new-password" placeholder="Password">
+    <input type="password" id="pwConfirm" class="pw-input" autocomplete="new-password" placeholder="Repeat password" style="display:none;">
+    <div id="pwError" style="color:#C0432E;font-size:12.5px;font-weight:600;min-height:18px;margin-top:8px;"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;">
+      <button class="action secondary" id="pwCancel">Cancel</button>
+      <button class="action" id="pwOk">Continue</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const CUR_SYMBOLS = {'£':'£', '$':'$', N:'₦', '€':'€'};
-const APP_VERSION = '2026.10.1 · Bottom nav + mobile UX polish';
+const APP_VERSION = '2026.10.5 · Bills, reminders & search';
 const STORAGE_KEY = 'ledger-data-v2';
 const OLD_STORAGE_KEY = 'finance-data';
 
@@ -675,6 +888,28 @@ function normalizeData(d){
   if(!d.primaryCurrency) d.primaryCurrency = '£';
   if(!Array.isArray(d.assets)) d.assets = DEFAULT_ASSETS();
   if(!d.taxSettings) d.taxSettings = DEFAULT_TAX_SETTINGS();
+  if(!d.taxTracker) d.taxTracker = { year:'', isaPaid:0, savingsInterest:0 };
+  if(!Array.isArray(d.debts)) d.debts = [];
+  if(!Array.isArray(d.goals)) d.goals = [];
+  if(!d.fxRates || typeof d.fxRates !== 'object') d.fxRates = {};
+  if(typeof d.debtExtra !== 'number') d.debtExtra = 0;
+  if(!Array.isArray(d.bills)) d.bills = [];
+  if(!Array.isArray(d.transactions)) d.transactions = [];
+  if(!d.billsPaid || typeof d.billsPaid !== 'object') d.billsPaid = {};
+  if(typeof d.billRemindDays !== 'number') d.billRemindDays = 3;
+  d.bills.forEach(b => {
+    ['amount','day','month'].forEach(k => { if(typeof b[k] !== 'number') b[k] = k === 'amount' ? 0 : 1; });
+    if(b.freq !== 'yearly') b.freq = 'monthly';
+  });
+  ensureIds(d.bills);
+  { // forget paid-ticks for deleted bills or anything older than two years
+    const ids = new Set(d.bills.map(b => b.id)), cutoff = new Date(); cutoff.setFullYear(cutoff.getFullYear() - 2);
+    const cut = cutoff.getFullYear() + '-' + String(cutoff.getMonth() + 1).padStart(2, '0');
+    Object.keys(d.billsPaid).forEach(k => { const [id, ym] = k.split('|'); if(!ids.has(id) || ym < cut) delete d.billsPaid[k]; });
+  }
+  d.debts.forEach(r => { if(!r.cur) r.cur = d.primaryCurrency || '£'; ['balance','rate','minPayment'].forEach(k => { if(typeof r[k] !== 'number') r[k] = 0; }); });
+  d.goals.forEach(r => { ['target','saved'].forEach(k => { if(typeof r[k] !== 'number') r[k] = 0; }); if(typeof r.date !== 'string') r.date = ''; });
+  ensureIds(d.debts); ensureIds(d.goals);
   if(typeof d.taxSettings.niMainRate !== 'number'){
     const keep = d.taxSettings;
     d.taxSettings = Object.assign(DEFAULT_TAX_SETTINGS(), keep);
@@ -696,6 +931,114 @@ function loadPlainData(){
   data = raw ? normalizeData(JSON.parse(raw)) : normalizeData(freshData());
 }
 
+/* ---------- backups: reminders, tracking, optional password protection ---------- */
+const BACKUP_META_KEY = 'ledger-backup-meta';   // timestamps + preferences only, no financial data
+let backupMeta = null;
+function loadBackupMeta(){
+  try{ backupMeta = JSON.parse(localStorage.getItem(BACKUP_META_KEY)) || {}; }catch(e){ backupMeta = {}; }
+  if(!backupMeta.firstSeen) backupMeta.firstSeen = Date.now();
+  if(typeof backupMeta.remindDays !== 'number') backupMeta.remindDays = 14;
+  saveBackupMeta();
+}
+function saveBackupMeta(){ try{ localStorage.setItem(BACKUP_META_KEY, JSON.stringify(backupMeta)); }catch(e){} }
+function markChanged(){ if(!backupMeta) return; backupMeta.lastChange = Date.now(); saveBackupMeta(); }
+
+function dataHasContent(){
+  if(!data) return false;
+  const nz = (arr) => arr.some(r => Number(r.amount) > 0);
+  return Object.values(data.months).some(m => nz(m.income) || nz(m.expenses) || nz(m.savings) || m.payslips.some(p => Number(p.gross) > 0))
+    || nz(data.assets) || data.debts.some(r => Number(r.balance) > 0) || data.goals.some(r => Number(r.target) > 0 || Number(r.saved) > 0);
+}
+function backupStatus(){
+  const DAY = 86400000, now = Date.now(), last = backupMeta.lastBackup || 0;
+  const days = last ? Math.floor((now - last) / DAY) : null;
+  if(!backupMeta.remindDays) return { off:true, due:false, never:!last, days };
+  if(!dataHasContent()) return { due:false, never:!last, days };
+  const changedSince = !last || (backupMeta.lastChange || 0) > last;   // never backed up = everything is unsaved
+  // someone who has never backed up gets nudged sooner (at most a week in)
+  const threshold = last ? backupMeta.remindDays : Math.min(backupMeta.remindDays, 7);
+  const age = (now - (last || backupMeta.firstSeen)) / DAY;
+  const snoozed = backupMeta.snoozeUntil && now < backupMeta.snoozeUntil;
+  return { due: changedSince && age >= threshold && !snoozed, never: !last, days };
+}
+function renderBackupUI(){
+  if(!backupMeta || !data) return;
+  const st = backupStatus();
+  document.getElementById('backupBanner').style.display = st.due ? '' : 'none';
+  document.getElementById('settingsBtn').classList.toggle('due', !!st.due);
+  document.getElementById('backupBannerText').textContent = st.never
+    ? "You haven't saved a backup yet, and your data only lives on this phone."
+    : `Your last backup was ${st.days === 0 ? 'today' : st.days + (st.days === 1 ? ' day' : ' days') + ' ago'}, and you've made changes since. Your data only lives on this phone.`;
+  document.getElementById('backupLastDesc').textContent = st.never
+    ? "You haven't saved a backup yet. Your data only lives on this phone."
+    : 'Last backup: ' + new Date(backupMeta.lastBackup).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'}) +
+      (st.days === 0 ? ' (today)' : ` (${st.days} ${st.days === 1 ? 'day' : 'days'} ago)`);
+  document.getElementById('backupRemindSelect').value = String(backupMeta.remindDays);
+  document.getElementById('backupEncryptToggle').checked = !!backupMeta.encrypt;
+}
+function recordBackup(){
+  backupMeta.lastBackup = Date.now(); backupMeta.snoozeUntil = 0; saveBackupMeta(); renderBackupUI();
+}
+
+function askPassword(opts){
+  return new Promise(resolve => {
+    const bd = document.getElementById('pwBackdrop'), inp = document.getElementById('pwInput'), conf = document.getElementById('pwConfirm'),
+          err = document.getElementById('pwError'), ok = document.getElementById('pwOk'), cancel = document.getElementById('pwCancel');
+    document.getElementById('pwTitle').textContent = opts.title || 'Password';
+    document.getElementById('pwHint').textContent = opts.hint || '';
+    ok.textContent = opts.okLabel || 'Continue';
+    inp.style.display = opts.noInput ? 'none' : '';
+    conf.style.display = opts.confirm ? '' : 'none';
+    inp.value = ''; conf.value = ''; err.textContent = '';
+    bd.classList.add('show');
+    if(!opts.noInput) setTimeout(() => inp.focus(), 60);
+    const done = (val) => { bd.classList.remove('show'); ok.onclick = null; cancel.onclick = null; inp.onkeydown = null; resolve(val); };
+    ok.onclick = () => {
+      if(opts.noInput) return done('');
+      if(inp.value.length < 6){ err.textContent = 'Use at least 6 characters.'; return; }
+      if(opts.confirm && conf.value !== inp.value){ err.textContent = "The two passwords don't match."; return; }
+      done(inp.value);
+    };
+    cancel.onclick = () => done(null);
+    inp.onkeydown = (e) => { if(e.key === 'Enter' && !opts.confirm) ok.onclick(); };
+  });
+}
+
+async function doBackup(){
+  const date = new Date().toISOString().slice(0,10);
+  let payload = data, filename = 'ledger-backup-' + date + '.json';
+  const protectedBackup = !!backupMeta.encrypt;
+  if(protectedBackup){
+    const pw = await askPassword({ confirm:true, title:'Protect this backup',
+      hint:"Choose a password you'll remember (6+ characters). You'll need it to restore this file, and if it's forgotten the backup can't be opened." });
+    if(pw === null) return;
+    const salt = b64(crypto.getRandomValues(new Uint8Array(16)));
+    const key = await deriveKey(pw, salt);
+    const { iv, ct } = await encryptJSON(key, data);
+    payload = { format:'ledger-encrypted-backup', v:1, salt, iv, ct };
+    filename = 'ledger-backup-' + date + '-protected.json';
+  }
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  let ok = await saveFile(blob, filename, 'application/json', { allowRetry: protectedBackup });
+  if(ok === 'blocked'){
+    // the phone only lets a share sheet open straight after a tap, and the encryption took a moment: ask for one more tap
+    const go = await askPassword({ noInput:true, title:'Backup ready', hint:'Tap Save, then choose where to keep it (for example Files).', okLabel:'Save' });
+    if(go === null) return;
+    ok = await saveFile(blob, filename, 'application/json');
+  }
+  if(ok === true) recordBackup();
+}
+document.getElementById('backupNowBtn').addEventListener('click', doBackup);
+document.getElementById('backupLaterBtn').addEventListener('click', () => {
+  backupMeta.snoozeUntil = Date.now() + 2 * 86400000; saveBackupMeta(); renderBackupUI();
+});
+document.getElementById('backupRemindSelect').addEventListener('change', (e) => {
+  backupMeta.remindDays = Number(e.target.value); saveBackupMeta(); renderBackupUI();
+});
+document.getElementById('backupEncryptToggle').addEventListener('change', (e) => {
+  backupMeta.encrypt = e.target.checked; saveBackupMeta();
+});
+
 function scheduleSave(){
   clearTimeout(saveTimer);
   saveTimer = setTimeout(async () => {
@@ -706,6 +1049,7 @@ function scheduleSave(){
     } else if(!lockConfig.enabled){
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     }
+    markChanged();
     flashSaved();
   }, 400);
 }
@@ -746,8 +1090,8 @@ function loadLockConfig(){
 }
 function saveLockConfig(){ localStorage.setItem(LOCK_CONFIG_KEY, JSON.stringify(lockConfig)); }
 
-function fmt(n){ n = Number(n)||0; return n.toLocaleString(undefined,{maximumFractionDigits:2}); }
-function fmtP(n){ return (data.primaryCurrency||'£') + fmt(n); }
+function fmt(n){ n = Number(n)||0; return n.toLocaleString(undefined,{minimumFractionDigits: Number.isInteger(n) ? 0 : 2, maximumFractionDigits:2}); }   // £6.20, not £6.2
+function fmtP(n){ return (CUR_SYMBOLS[data.primaryCurrency] || data.primaryCurrency || '£') + fmt(n); }
 
 function sum(arr){ return arr.reduce((a,r)=>a + (Number(r.amount)||0), 0); }
 function currentMonth(){ return data.months[data.currentMonthKey]; }
@@ -942,6 +1286,7 @@ function renderTaxCard(){
     const el = document.getElementById(elId);
     if(document.activeElement !== el) el.value = t[field];
   });
+  if(typeof renderTaxEssentials === 'function') renderTaxEssentials(); // savings allowance depends on the income estimate
 }
 
 document.getElementById('taxAnnualGross').addEventListener('input', (e) => {
@@ -970,6 +1315,125 @@ document.getElementById('resetTaxBands').addEventListener('click', () => {
   renderTaxCard();
   exportStatus('Tax bands reset to 2026/27 UK defaults.');
 });
+
+/* ---------- tax year, deadlines, allowances ---------- */
+const ISA_LIMIT = 20000; // overall ISA allowance, unchanged through 2026/27 and confirmed to at least 2030/31
+const TAX_FACTS_CHECKED = 'Checked Oct 2026';
+const TAX_FACTS = [
+  ['Personal allowance', '£12,570 — reduces by £1 for every £2 of income over £100,000, gone at £125,140'],
+  ['Income tax bands', '20% to £50,270 · 40% to £125,140 · 45% above'],
+  ['Employee National Insurance', '8% from £12,570 to £50,270 · 2% above'],
+  ['ISA allowance', '£20,000 across all ISAs. From 6 April 2027 under-65s can put at most £12,000 of it in cash ISAs'],
+  ['Personal savings allowance', '£1,000 basic rate · £500 higher rate · £0 additional rate'],
+  ['Dividend allowance', '£500 a year'],
+  ['Marriage allowance', 'Can transfer £1,260 of personal allowance to a spouse or civil partner who pays basic-rate tax'],
+  ['Pension annual allowance', '£60,000 (tax relief limited to 100% of your earnings)'],
+  ['Tax year', 'Runs 6 April to 5 April. Unused ISA allowance is lost on 5 April']
+];
+const TAX_DATES = [
+  { m:3,  d:5,  label:'Tax year ends', note:'Last day to use this year\'s ISA allowance' },
+  { m:6,  d:31, label:'Second payment on account', note:'Self Assessment' },
+  { m:9,  d:5,  label:'Register for Self Assessment', note:'If you need to file for the first time' },
+  { m:9,  d:31, label:'Paper tax return deadline', note:'Self Assessment' },
+  { m:0,  d:31, label:'Online tax return + tax due', note:'Self Assessment; also first payment on account' }
+];
+
+function taxYearInfo(now){
+  now = now || new Date();
+  const y = now.getFullYear();
+  const startYear = now >= new Date(y, 3, 6) ? y : y - 1;
+  return {
+    label: startYear + '/' + String(startYear + 1).slice(2),
+    start: new Date(startYear, 3, 6),
+    end: new Date(startYear + 1, 3, 5, 23, 59, 59)
+  };
+}
+function daysUntil(date, now){ return Math.max(0, Math.ceil((date - now) / 86400000)); }
+function nextOccurrence(m, d, now){
+  let dt = new Date(now.getFullYear(), m, d, 23, 59, 59);
+  if(dt < now) dt = new Date(now.getFullYear() + 1, m, d, 23, 59, 59);
+  return dt;
+}
+function estimatedAnnualGross(){
+  const m = currentMonth(), t = data.taxSettings;
+  if(t.annualGross) return Number(t.annualGross);
+  const pg = m.payslips.reduce((a, r) => a + (Number(r.gross)||0), 0);
+  if(pg > 0) return pg * 12;
+  const sr = m.income.find(r => /salary/i.test(r.label)) || m.income[0];
+  return sr ? (Number(sr.amount)||0) * 12 : 0;
+}
+
+function renderTaxEssentials(){
+  const now = new Date();
+  const ty = taxYearInfo(now);
+  // the tracker resets itself when a new tax year begins
+  if(data.taxTracker.year !== ty.label){
+    data.taxTracker = { year: ty.label, isaPaid: 0, savingsInterest: 0 };
+    scheduleSave();
+  }
+  const tr = data.taxTracker;
+
+  document.getElementById('taxYearLabel').textContent = 'Tax year ' + ty.label;
+  const total = ty.end - ty.start, done = Math.min(total, Math.max(0, now - ty.start));
+  const pct = Math.round(done / total * 100);
+  document.getElementById('taxYearDays').textContent = daysUntil(ty.end, now) + ' days left in this tax year';
+  document.getElementById('taxYearPct').textContent = pct + '% elapsed';
+  const bar = document.getElementById('taxYearBar');
+  bar.style.width = pct + '%';
+  bar.className = 'budget-fill' + (pct >= 90 ? ' warn' : '');
+
+  document.getElementById('taxDeadlines').innerHTML = TAX_DATES
+    .map(x => { const dt = nextOccurrence(x.m, x.d, now); return { ...x, dt, days: daysUntil(dt, now) }; })
+    .sort((a, b) => a.dt - b.dt)
+    .map(x => `
+      <div class="tax-band-row" style="padding:10px 18px;">
+        <span class="label"><b>${x.label}</b><br><span style="color:var(--ink-soft);font-size:11.5px;">${x.dt.toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'})} · ${x.note}</span></span>
+        <span style="font-weight:700;font-size:13px;white-space:nowrap;color:${x.days <= 30 ? '#C0432E' : 'var(--teal-dark)'};">${x.days} days</span>
+      </div>`).join('');
+
+  // ISA tracker
+  const isaEl = document.getElementById('isaPaid');
+  if(document.activeElement !== isaEl) isaEl.value = tr.isaPaid || '';
+  const isaLeft = ISA_LIMIT - (Number(tr.isaPaid)||0);
+  const isaPct = Math.min(100, (Number(tr.isaPaid)||0) / ISA_LIMIT * 100);
+  const isaBar = document.getElementById('isaBar');
+  isaBar.style.width = isaPct + '%';
+  isaBar.className = 'budget-fill' + (isaLeft < 0 ? ' over' : '');
+  document.getElementById('isaResult').innerHTML = isaLeft < 0
+    ? `<b style="color:#C0432E;">${fmtP(-isaLeft)} over</b> the ${fmtP(ISA_LIMIT)} limit — check with your provider, as excess subscriptions can be removed.`
+    : `<b>${fmtP(isaLeft)}</b> of your ${fmtP(ISA_LIMIT)} allowance left · resets in ${daysUntil(ty.end, now)} days. Use it or lose it.`;
+
+  // savings interest vs personal savings allowance
+  const savEl = document.getElementById('savInterest');
+  if(document.activeElement !== savEl) savEl.value = tr.savingsInterest || '';
+  const g = estimatedAnnualGross(), t = data.taxSettings;
+  const higher = Number(t.higherThreshold)||0, basic = Number(t.basicThreshold)||0;
+  const psa = g > higher ? 0 : (g > basic ? 500 : 1000);
+  const rate = g > higher ? Number(t.additionalRate) : (g > basic ? Number(t.higherRate) : Number(t.basicRate));
+  const interest = Number(tr.savingsInterest)||0;
+  const over = Math.max(0, interest - psa);
+  document.getElementById('savResult').innerHTML = g <= 0
+    ? '<span style="color:var(--ink-soft);">Add your income in the tax estimate above to see your savings allowance.</span>'
+    : `Your allowance is about <b>${fmtP(psa)}</b> (based on estimated income of ${fmtP(g)}). ` +
+      (over > 0
+        ? `Interest above it: <b>${fmtP(over)}</b>, which could mean roughly <b style="color:#C0432E;">${fmtP(over * rate / 100)}</b> tax at ${rate}%.`
+        : `You're within it, so no tax on this interest.`);
+
+  // reference facts
+  document.getElementById('factsVerified').textContent = TAX_FACTS_CHECKED;
+  document.getElementById('taxFacts').innerHTML = TAX_FACTS.map(([k, v]) =>
+    `<div class="tax-band-row" style="align-items:flex-start;"><span class="label" style="flex:0 0 38%;font-weight:600;">${k}</span><span style="flex:1;font-size:12.5px;color:var(--ink-soft);text-align:right;">${v}</span></div>`
+  ).join('');
+}
+document.getElementById('isaPaid').addEventListener('input', (e) => {
+  data.taxTracker.isaPaid = e.target.value === '' ? 0 : Number(e.target.value);
+  scheduleSave(); renderTaxEssentials();
+});
+document.getElementById('savInterest').addEventListener('input', (e) => {
+  data.taxTracker.savingsInterest = e.target.value === '' ? 0 : Number(e.target.value);
+  scheduleSave(); renderTaxEssentials();
+});
+
 
 function renderAssets(){
   const tbody = document.getElementById('assetsBody');
@@ -1003,6 +1467,7 @@ function renderTotals(){
   document.getElementById('balanceTotal').textContent = fmtP(bal);
   document.getElementById('incomeMonthLabel').textContent = monthLabel(data.currentMonthKey);
   document.getElementById('balanceRow').className = 'card-total ' + (bal>=0?'pos':'neg');
+  renderBillsSummary();
 }
 
 function renderOverview(){
@@ -1014,6 +1479,8 @@ function renderOverview(){
     {k:'Savings', v:fmtP(sav), cls:'pos'}, {k:'Left over', v:fmtP(bal), cls:bal>=0?'pos':'neg'},
     {k:'Savings rate', v:rate.toFixed(1)+'%', cls:rate>=15?'pos':'gold'},
   ];
+  const wt = wealthTotals();
+  if(!wt.missing.length && (wt.assets > 0 || wt.debts > 0)) stats.push({k:'Net worth', v:fmtP(wt.net), cls:wt.net>=0?'pos':'neg'});
   document.getElementById('statGrid').innerHTML = stats.map(s=>`
     <div class="stat"><div class="k">${s.k}</div><div class="v ${s.cls}">${s.v}</div></div>
   `).join('');
@@ -1122,21 +1589,378 @@ function currentAssetTotals(){
 }
 document.getElementById('snapshotBtn').addEventListener('click', () => {
   const totals = currentAssetTotals();
-  data.assetSnapshots.push({ date: new Date().toISOString().slice(0,10), totals });
+  const w = wealthTotals();
+  data.assetSnapshots.push({ date: new Date().toISOString().slice(0,10), totals,
+    combined: w.missing.length ? null : w.net, primary: data.primaryCurrency });
   data.assetSnapshots.sort((a,b)=> a.date.localeCompare(b.date));
   scheduleSave(); renderAssetsPanel();
 });
 function renderAssetsPanel(){
   renderAssets();
+  renderWealth();
   const list = document.getElementById('snapList');
   if(data.assetSnapshots.length === 0){
     list.innerHTML = '<div class="empty">no snapshots yet — tap "Save snapshot" above whenever you want to log a net-worth point in time</div>';
   } else {
     list.innerHTML = [...data.assetSnapshots].reverse().slice(0,8).map(s => `
-      <div class="snap-row"><span>${s.date}</span><span>${Object.entries(s.totals).map(([c,v])=>`${CUR_SYMBOLS[c]||''}${fmt(v)}`).join('  ·  ')}</span></div>
+      <div class="snap-row"><span>${s.date}</span><span>${Object.entries(s.totals).map(([c,v])=>`${CUR_SYMBOLS[c]||''}${fmt(v)}`).join('  ·  ')}${s.combined != null ? `  ·  net ${CUR_SYMBOLS[s.primary]||s.primary||''}${fmt(s.combined)}` : ''}</span></div>
     `).join('');
   }
 }
+
+/* ---------- wealth: net worth, debts, goals ---------- */
+function curOptions(cur){
+  return Object.keys(CUR_SYMBOLS).map(c => `<option value="${c}" ${c===cur?'selected':''}>${CUR_SYMBOLS[c]} ${c==='N'?'NGN':c==='£'?'GBP':c==='$'?'USD':'EUR'}</option>`).join('');
+}
+function toPrimary(amount, cur){
+  const prim = data.primaryCurrency || '£';
+  const c = cur || prim;
+  if(c === prim) return amount;
+  const rate = Number(data.fxRates[c]);
+  return rate > 0 ? amount * rate : null;   // null = no exchange rate set yet
+}
+function wealthTotals(){
+  let assets = 0, debts = 0;
+  const missing = new Set();
+  data.assets.forEach(a => {
+    const amt = Number(a.amount)||0, v = toPrimary(amt, a.cur);
+    if(v === null){ if(amt) missing.add(a.cur); } else assets += v;
+  });
+  data.debts.forEach(d => {
+    const amt = Number(d.balance)||0, v = toPrimary(amt, d.cur);
+    if(v === null){ if(amt) missing.add(d.cur); } else debts += v;
+  });
+  return { assets, debts, net: assets - debts, missing: [...missing] };
+}
+function renderFxRows(){
+  const prim = data.primaryCurrency || '£';
+  const cs = [...new Set([...data.assets.map(a => a.cur || prim), ...data.debts.map(d => d.cur || prim)])].filter(c => c !== prim);
+  document.getElementById('fxRates').innerHTML = cs.length
+    ? `<div style="font-size:12px;color:var(--ink-soft);font-weight:600;margin-bottom:4px;">Your exchange rates</div>` +
+      cs.map(c => `<div class="fx-row"><span>1 ${CUR_SYMBOLS[c]||c} =</span><input type="number" inputmode="decimal" step="any" placeholder="0" data-fx="${c}" value="${data.fxRates[c]||''}"><span>${CUR_SYMBOLS[prim]||prim}</span></div>`).join('')
+    : `<div style="font-size:12.5px;color:var(--ink-soft);">Everything is in ${CUR_SYMBOLS[prim]||prim}, so no exchange rates are needed.</div>`;
+}
+function renderNetWorth(){
+  const w = wealthTotals();
+  document.getElementById('nwGrid').innerHTML = `
+    <div class="stat"><div class="k">Assets</div><div class="v pos">${fmtP(w.assets)}</div></div>
+    <div class="stat"><div class="k">Debts</div><div class="v neg">${fmtP(w.debts)}</div></div>
+    <div class="stat"><div class="k">Net worth</div><div class="v ${w.net>=0?'pos':'neg'}">${fmtP(w.net)}</div></div>`;
+  document.getElementById('nwWarn').textContent = w.missing.length
+    ? `Not counted yet: ${w.missing.map(c => CUR_SYMBOLS[c]||c).join(', ')}. Enter a rate below to include them.` : '';
+}
+
+/* debts */
+function simulateDebts(list, extra){
+  const ds = list.map(d => ({ ...d }));
+  let months = 0, interest = 0;
+  while(ds.some(d => d.bal > 0.005) && months < 600){
+    months++;
+    ds.forEach(d => { if(d.bal > 0){ const i = d.bal * d.apr / 1200; d.bal += i; interest += i; } });
+    let pool = extra;
+    ds.forEach(d => { if(d.bal > 0){ d.bal -= Math.min(d.min, d.bal); } else pool += d.min; });  // freed-up minimums roll over
+    ds.filter(d => d.bal > 0).sort((a, b) => b.apr - a.apr).forEach(d => {
+      if(pool <= 0) return;
+      const p = Math.min(pool, d.bal); d.bal -= p; pool -= p;
+    });
+  }
+  return { months, interest, finished: !ds.some(d => d.bal > 0.005) };
+}
+function fmtDuration(m){
+  const y = Math.floor(m / 12), mo = m % 12;
+  return [y ? y + (y === 1 ? ' yr' : ' yrs') : '', mo || !y ? mo + ' mo' : ''].filter(Boolean).join(' ');
+}
+function dateIn(m){
+  const d = new Date(); d.setMonth(d.getMonth() + m);
+  return d.toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
+}
+function debtRowHtml(r){
+  const cur = r.cur || data.primaryCurrency || '£';
+  const f = (field) => `data-key="debts" data-id="${r.id}" data-field="${field}"`;
+  return `
+    <div class="fin-row">
+      <div class="fin-top">
+        <input class="fin-label" type="text" placeholder="e.g. Credit card" value="${escapeAttr(r.label||'')}" ${f('label')}>
+        <button class="delbtn" data-del="debts" data-id="${r.id}" aria-label="Remove debt">✕</button>
+      </div>
+      <div class="fin-fields">
+        <label class="wide">Balance owed
+          <div class="bal-wrap"><select ${f('cur')}>${curOptions(cur)}</select>
+          <input type="number" inputmode="decimal" step="any" placeholder="0" value="${r.balance||''}" ${f('balance')}></div>
+        </label>
+        <label>Interest rate (APR %)<input type="number" inputmode="decimal" step="any" placeholder="0" value="${r.rate||''}" ${f('rate')}></label>
+        <label>Minimum / month<input type="number" inputmode="decimal" step="any" placeholder="0" value="${r.minPayment||''}" ${f('minPayment')}></label>
+      </div>
+    </div>`;
+}
+function renderDebtsPanel(){
+  const list = document.getElementById('debtsList');
+  list.innerHTML = data.debts.length ? data.debts.map(debtRowHtml).join('')
+    : '<div class="empty">No debts logged. Add credit cards, loans or overdrafts to see them in your net worth and get a payoff estimate.</div>';
+  renderDebtSummary();
+}
+function renderDebtSummary(){
+  const wrap = document.getElementById('debtSummary');
+  if(!data.debts.length){ wrap.style.display = 'none'; document.getElementById('debtsEyebrow').textContent = ''; return; }
+  wrap.style.display = '';
+  let total = 0, minTotal = 0, monthlyInterest = 0, missing = false;
+  const sim = [];
+  data.debts.forEach(d => {
+    const bal = toPrimary(Number(d.balance)||0, d.cur), min = toPrimary(Number(d.minPayment)||0, d.cur);
+    if(bal === null || min === null){ if((Number(d.balance)||0) > 0) missing = true; return; }
+    total += bal; minTotal += min; monthlyInterest += bal * (Number(d.rate)||0) / 1200;
+    if(bal > 0) sim.push({ bal, apr: Number(d.rate)||0, min });
+  });
+  document.getElementById('debtsEyebrow').textContent = fmtP(total) + ' owed';
+  document.getElementById('debtStats').innerHTML = `
+    <div class="stat"><div class="k">Total owed</div><div class="v neg">${fmtP(total)}</div></div>
+    <div class="stat"><div class="k">Minimums / mo</div><div class="v gold">${fmtP(minTotal)}</div></div>
+    <div class="stat"><div class="k">Interest / mo (est.)</div><div class="v neg">${fmtP(monthlyInterest)}</div></div>`;
+  const extraEl = document.getElementById('debtExtra');
+  if(document.activeElement !== extraEl) extraEl.value = data.debtExtra || '';
+
+  let html = '';
+  if(sim.length){
+    const base = simulateDebts(sim, 0);
+    html = base.finished
+      ? `Paying only the minimums, you'd be debt-free in <b>${fmtDuration(base.months)}</b> (${dateIn(base.months)}), paying about <b>${fmtP(base.interest)}</b> in interest.`
+      : `At these minimum payments the debts won't clear within 50 years. At least one minimum may not even cover its interest.`;
+    const extra = Number(data.debtExtra)||0;
+    if(extra > 0){
+      const fast = simulateDebts(sim, extra);
+      if(fast.finished){
+        html += `<br>With an extra <b>${fmtP(extra)}</b> a month: debt-free in <b>${fmtDuration(fast.months)}</b> (${dateIn(fast.months)})` +
+          (base.finished ? `, saving about <b style="color:var(--teal-dark);">${fmtP(Math.max(0, base.interest - fast.interest))}</b> in interest and finishing ${fmtDuration(Math.max(0, base.months - fast.months))} sooner.` : '.');
+      }
+    }
+  }
+  if(missing) html += `<br><span style="color:#C0432E;">Some debts are in a currency with no exchange rate set, so they're left out of these figures.</span>`;
+  document.getElementById('debtProjection').innerHTML = html;
+}
+document.getElementById('debtExtra').addEventListener('input', (e) => {
+  data.debtExtra = e.target.value === '' ? 0 : Number(e.target.value);
+  renderDebtSummary(); scheduleSave();
+});
+
+/* goals */
+function goalProgressHtml(r){
+  const target = Number(r.target)||0, saved = Number(r.saved)||0;
+  if(target <= 0) return '<div class="sub">Set a target amount to track your progress.</div>';
+  const pct = Math.min(100, saved / target * 100), left = Math.max(0, target - saved);
+  let note;
+  if(left <= 0) note = '🎉 Goal reached!';
+  else {
+    note = `${fmtP(left)} to go.`;
+    if(r.date){
+      const end = new Date(r.date + 'T23:59:59'), now = new Date();
+      if(end < now) note += ' The target date has passed.';
+      else {
+        const months = Math.max(1, Math.ceil((end - now) / (30.44 * 86400000)));
+        note += ` About <b>${fmtP(left / months)}</b> a month gets you there by ${end.toLocaleDateString(undefined,{month:'short',year:'numeric'})}.`;
+      }
+    }
+  }
+  return `<div class="line"><span>${fmtP(saved)} of ${fmtP(target)}</span><span>${Math.round(pct)}%</span></div>
+    <div class="budget-track"><div class="budget-fill" style="width:${pct}%"></div></div><div class="sub">${note}</div>`;
+}
+function goalRowHtml(r){
+  const f = (field) => `data-key="goals" data-id="${r.id}" data-field="${field}"`;
+  return `
+    <div class="fin-row">
+      <div class="fin-top">
+        <input class="fin-label" type="text" placeholder="e.g. Emergency fund" value="${escapeAttr(r.label||'')}" ${f('label')}>
+        <button class="delbtn" data-del="goals" data-id="${r.id}" aria-label="Remove goal">✕</button>
+      </div>
+      <div class="fin-fields">
+        <label>Saved so far<input type="number" inputmode="decimal" step="any" placeholder="0" value="${r.saved||''}" ${f('saved')}></label>
+        <label>Target<input type="number" inputmode="decimal" step="any" placeholder="0" value="${r.target||''}" ${f('target')}></label>
+        <label class="wide">Target date (optional)<input type="date" value="${escapeAttr(r.date||'')}" ${f('date')}></label>
+      </div>
+      <div class="goal-prog" data-goal="${r.id}">${goalProgressHtml(r)}</div>
+    </div>`;
+}
+function updateGoalProgress(){
+  data.goals.forEach(r => {
+    const el = document.querySelector(`[data-goal="${r.id}"]`);
+    if(el) el.innerHTML = goalProgressHtml(r);
+  });
+  const t = data.goals.reduce((a, r) => a + (Number(r.target)||0), 0), sv = data.goals.reduce((a, r) => a + Math.min(Number(r.saved)||0, Number(r.target)||0), 0);
+  document.getElementById('goalsEyebrow').textContent = t > 0 ? `${fmtP(sv)} of ${fmtP(t)}` : '';
+}
+function renderGoalsPanel(){
+  document.getElementById('goalsList').innerHTML = data.goals.length ? data.goals.map(goalRowHtml).join('')
+    : '<div class="empty">No goals yet. Try an emergency fund, a holiday or a deposit, with a target and a date.</div>';
+  updateGoalProgress();
+}
+function renderWealth(){ renderFxRows(); renderNetWorth(); renderDebtsPanel(); renderGoalsPanel(); }
+
+document.addEventListener('input', (e) => {
+  const c = e.target.dataset && e.target.dataset.fx;
+  if(!c) return;
+  data.fxRates[c] = e.target.value === '' ? 0 : Number(e.target.value);
+  renderNetWorth(); renderDebtSummary(); scheduleSave();
+});
+
+/* ---------- recurring bills + due-date reminders ---------- */
+const DAY_MS = 86400000;
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function startOfDay(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+function clampDay(y, m, day){ return Math.min(Math.max(1, Math.floor(Number(day)) || 1), new Date(y, m + 1, 0).getDate()); }
+function billKey(b, date){ return b.id + '|' + date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0'); }
+function isBillPaid(b, date){ return !!data.billsPaid[billKey(b, date)]; }
+function nextBillDue(b, now){
+  const nowMs = (now || new Date()).getTime();
+  const today = startOfDay(now || new Date());
+  const y = today.getFullYear(), m = today.getMonth();
+  const OVERDUE_DAYS = 14;   // an unpaid bill stays flagged as overdue for two weeks, then rolls to its next date
+  // a bill ticked off in the last 24 hours stays visible so a mis-tap can be undone
+  const paidRecently = (dt) => { const v = data.billsPaid[billKey(b, dt)]; return typeof v === 'number' && nowMs - v >= 0 && nowMs - v < DAY_MS; };
+  const stillRelevant = (dt) => dt >= today || paidRecently(dt) || (!isBillPaid(b, dt) && (today - dt) / DAY_MS <= OVERDUE_DAYS);
+  if(b.freq === 'yearly'){
+    const mo = Math.min(12, Math.max(1, Number(b.month)||1)) - 1;
+    const cur = new Date(y, mo, clampDay(y, mo, b.day));
+    return stillRelevant(cur) ? cur : new Date(y + 1, mo, clampDay(y + 1, mo, b.day));
+  }
+  const cur = new Date(y, m, clampDay(y, m, b.day));
+  return stillRelevant(cur) ? cur : new Date(y, m + 1, clampDay(y, m + 1, b.day));
+}
+function billItems(now, horizon){
+  const nowReal = now || new Date(), today = startOfDay(nowReal);
+  return data.bills.filter(b => b.label || Number(b.amount) > 0).map(b => {
+    const date = nextBillDue(b, nowReal);
+    return { bill: b, date, days: Math.round((date - today) / DAY_MS), paid: isBillPaid(b, date), key: billKey(b, date) };
+  }).filter(it => it.days <= horizon).sort((a, b) => a.date - b.date);
+}
+function dueChip(days){
+  if(days < 0) return `${-days} ${-days === 1 ? 'day' : 'days'} overdue`;
+  if(days === 0) return 'Due today';
+  if(days === 1) return 'Tomorrow';
+  return `In ${days} days`;
+}
+function renderBillsDue(){
+  if(!data) return;
+  const card = document.getElementById('billsDueCard'), badge = document.getElementById('navBadge');
+  if(!data.bills.length){ card.style.display = 'none'; badge.style.display = 'none'; return; }
+  const items = billItems(new Date(), 14);
+  const remind = Number(data.billRemindDays) || 3;
+  card.style.display = '';
+  document.getElementById('billsDueList').innerHTML = items.length ? items.map(it => {
+    const urgent = !it.paid && it.days <= remind;
+    return `<div class="bill-row ${urgent ? 'urgent' : ''} ${it.paid ? 'paid' : ''}">
+      <div><div class="bn">${escapeHtml(it.bill.label || 'Bill')}</div>
+        <div class="bs">${it.date.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'})} · ${fmtP(it.bill.amount)}</div></div>
+      <div class="bw"><span class="chip">${it.paid ? '✓ Paid' : dueChip(it.days)}</span>
+        <button data-paid-key="${escapeAttr(it.key)}">${it.paid ? 'Undo' : 'Mark paid'}</button></div>
+    </div>`;
+  }).join('') : '<div class="empty">Nothing due in the next 14 days.</div>';
+  const urgentCount = items.filter(it => !it.paid && it.days <= remind).length;
+  badge.textContent = urgentCount; badge.style.display = urgentCount ? '' : 'none';
+}
+document.getElementById('billsDueList').addEventListener('click', (e) => {
+  const k = e.target.closest('[data-paid-key]')?.dataset.paidKey;
+  if(!k) return;
+  if(data.billsPaid[k]) delete data.billsPaid[k]; else data.billsPaid[k] = Date.now();
+  scheduleSave(); renderBillsDue();
+});
+
+function billRowHtml(b){
+  const f = (field) => `data-key="bills" data-id="${b.id}" data-field="${field}"`;
+  const yearly = b.freq === 'yearly';
+  const monthOpts = MONTH_NAMES.map((n, i) => `<option value="${i+1}" ${Number(b.month)===i+1?'selected':''}>${n}</option>`).join('');
+  return `
+    <div class="fin-row">
+      <div class="fin-top">
+        <input class="fin-label" type="text" placeholder="e.g. Rent, Netflix, Council tax" value="${escapeAttr(b.label||'')}" ${f('label')}>
+        <button class="delbtn" data-del="bills" data-id="${b.id}" aria-label="Remove bill">✕</button>
+      </div>
+      <div class="fin-fields">
+        <label>Amount<input type="number" inputmode="decimal" step="any" placeholder="0" value="${b.amount||''}" ${f('amount')}></label>
+        <label>Due day (1–31)<input type="number" inputmode="numeric" min="1" max="31" placeholder="1" value="${b.day||''}" ${f('day')}></label>
+        <label ${yearly ? '' : 'class="wide"'}>Repeats
+          <select ${f('freq')}><option value="monthly" ${yearly?'':'selected'}>Every month</option><option value="yearly" ${yearly?'selected':''}>Every year</option></select></label>
+        ${yearly ? `<label>Month<select ${f('month')}>${monthOpts}</select></label>` : ''}
+      </div>
+    </div>`;
+}
+function renderBillsSummary(){
+  if(!data) return;
+  const monthly = data.bills.reduce((a, b) => a + (Number(b.amount)||0) / (b.freq === 'yearly' ? 12 : 1), 0);
+  document.getElementById('billsEyebrow').textContent = data.bills.length ? `≈ ${fmtP(monthly)} a month` : '';
+  const m = currentMonth(), inc = m ? m.income.reduce((a, r) => a + (Number(r.amount)||0), 0) : 0;
+  document.getElementById('billsSummary').textContent = !data.bills.length
+    ? 'Add rent, subscriptions and other regular payments to get due-date reminders on Overview.'
+    : `Your recurring bills come to about ${fmtP(monthly)} a month` + (inc > 0 ? `, around ${Math.round(monthly / inc * 100)}% of this month's income.` : '.') +
+      ' Yearly bills are spread over 12 months here.';
+}
+function renderBillsPanel(){
+  document.getElementById('billsList').innerHTML = data.bills.length ? data.bills.map(billRowHtml).join('')
+    : '<div class="empty">No bills yet.</div>';
+  renderBillsSummary(); renderBillsDue();
+}
+
+/* ---------- search across everything ---------- */
+const SEARCH_LIMIT = 80;
+function runSearch(raw){
+  const q = raw.trim().toLowerCase();
+  if(!q) return [];
+  const numeric = /^[£$₦€]?\s*-?\d[\d,]*(\.\d+)?$/.test(q);
+  const num = numeric ? Math.abs(parseFloat(q.replace(/[^0-9.\-]/g, ''))) : null;
+  const hit = (text, ...amounts) => (text || '').toLowerCase().includes(q) || (numeric && amounts.some(a => Math.abs(Math.abs(Number(a)||0) - num) < 0.005));
+  const out = [];
+  Object.keys(data.months).sort().reverse().forEach(k => {
+    const m = data.months[k];
+    [['income','💵','in'], ['expenses','🧾','out'], ['savings','🌱','']].forEach(([sec, ico, dir]) => {
+      m[sec].forEach(r => { if(Number(r.amount) > 0 && hit(r.label, r.amount)) out.push({ ico, title: r.label, sub: `${monthLabel(k)} · ${sec}`, amount: r.amount, dir, month: k, tab: 'budget', ord: k }); });
+    });
+    (m.payslips || []).forEach(p => {
+      const net = (Number(p.gross)||0) - (Number(p.deductions)||0);
+      if((Number(p.gross) > 0) && hit(p.label || 'Payslip', p.gross, net)) out.push({ ico:'💼', title: p.label || 'Payslip', sub: `${monthLabel(k)} · payslip (net)`, amount: net, dir:'in', month: k, tab: 'payslips', ord: k });
+    });
+  });
+  data.transactions.forEach(t => {
+    if(hit(t.description, t.amount) || hit(t.category, 0)) out.push({ ico:'🔄', title: t.description, sub: `${t.date} · ${t.category} · imported`, amount: t.amount, dir: t.dir, month: t.monthKey, tab: 'budget', ord: t.date });
+  });
+  data.assets.forEach(a => { if(Number(a.amount) > 0 && hit(a.label, a.amount)) out.push({ ico:'🏦', title: a.label, sub: 'Account', amount: a.amount, cur: a.cur, tab: 'assets', ord: '0' }); });
+  data.debts.forEach(d => { if(hit(d.label, d.balance, d.minPayment)) out.push({ ico:'💳', title: d.label || 'Debt', sub: 'Debt', amount: d.balance, cur: d.cur, dir:'out', tab: 'assets', ord: '0' }); });
+  data.goals.forEach(g => { if(hit(g.label, g.target, g.saved)) out.push({ ico:'🎯', title: g.label || 'Goal', sub: 'Savings goal', amount: g.target, tab: 'assets', ord: '0' }); });
+  data.bills.forEach(b => { if(hit(b.label, b.amount)) out.push({ ico:'📌', title: b.label || 'Bill', sub: `Bill · ${b.freq === 'yearly' ? 'every year' : 'every month'}, day ${b.day}`, amount: b.amount, dir:'out', tab: 'budget', ord: '0' }); });
+  // most recent first (month keys / dates sort as text), then the non-dated items
+  out.sort((a, b) => (b.ord > a.ord) - (b.ord < a.ord));
+  return out;
+}
+function renderSearch(){
+  const q = document.getElementById('searchInput').value;
+  const res = runSearch(q), meta = document.getElementById('searchMeta'), box = document.getElementById('searchResults');
+  if(!q.trim()){ meta.textContent = ''; box.innerHTML = '<div class="empty">Type a name (like "rent" or "tesco") or an amount (like 900) to search every month, your imported transactions, accounts, debts, goals and bills.</div>'; return; }
+  meta.textContent = res.length ? `${res.length > SEARCH_LIMIT ? SEARCH_LIMIT + '+' : res.length} result${res.length === 1 ? '' : 's'}` : '';
+  box.innerHTML = res.length ? res.slice(0, SEARCH_LIMIT).map(r => {
+    const sym = r.cur ? (CUR_SYMBOLS[r.cur] || r.cur) : (CUR_SYMBOLS[data.primaryCurrency] || data.primaryCurrency || '£');
+    return `<div class="sr-row" data-tab="${r.tab}" data-month="${r.month || ''}">
+      <div class="sr-ico">${r.ico}</div>
+      <div class="sr-main"><div class="sr-title">${escapeHtml(r.title)}</div><div class="sr-sub">${escapeHtml(r.sub)}</div></div>
+      <div class="sr-amt ${r.dir || ''}">${sym}${fmt(r.amount)}</div></div>`;
+  }).join('') : `<div class="empty">Nothing found for "${escapeHtml(q.trim())}". Lines with a zero amount are skipped.</div>`;
+}
+function openSearch(){
+  document.getElementById('searchBackdrop').classList.add('show');
+  renderSearch();
+  setTimeout(() => document.getElementById('searchInput').focus(), 80);
+}
+document.getElementById('searchBtn').addEventListener('click', openSearch);
+document.getElementById('closeSearch').addEventListener('click', () => document.getElementById('searchBackdrop').classList.remove('show'));
+document.getElementById('searchInput').addEventListener('input', renderSearch);
+document.getElementById('searchResults').addEventListener('click', (e) => {
+  const row = e.target.closest('.sr-row');
+  if(!row) return;
+  if(row.dataset.month && data.months[row.dataset.month]){ data.currentMonthKey = row.dataset.month; scheduleSave(); render(); }
+  document.getElementById('searchBackdrop').classList.remove('show');
+  document.querySelector(`nav.tabs button[data-tab="${row.dataset.tab}"]`).click();
+});
+document.getElementById('billRemindSelect').addEventListener('change', (e) => {
+  data.billRemindDays = Number(e.target.value); scheduleSave(); renderBillsDue();
+});
+// the app can stay open for days: refresh date-based things when it comes back to the foreground
+document.addEventListener('visibilitychange', () => { if(!document.hidden && data){ renderBillsDue(); renderBackupUI(); } });
 
 function renderTrends(){
   const keys = sortedMonthKeys();
@@ -1184,8 +2008,11 @@ function render(){
   renderOverview();
   renderPayslipsPanel();
   renderTaxCard();
+  renderTaxEssentials();
   renderAssetsPanel();
   renderTrends();
+  renderBillsPanel();
+  renderBackupUI();
 }
 
 document.querySelectorAll('nav.tabs button').forEach(btn => {
@@ -1196,7 +2023,7 @@ document.querySelectorAll('nav.tabs button').forEach(btn => {
     document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
     window.scrollTo({top:0});
     if(btn.dataset.tab === 'overview') renderOverview();
-    if(btn.dataset.tab === 'payslips'){ renderPayslipsPanel(); renderTaxCard(); }
+    if(btn.dataset.tab === 'payslips'){ renderPayslipsPanel(); renderTaxCard(); renderTaxEssentials(); }
     if(btn.dataset.tab === 'trends') renderTrends();
   });
 });
@@ -1204,11 +2031,19 @@ document.querySelectorAll('nav.tabs button').forEach(btn => {
 document.addEventListener('input', (e) => {
   const t = e.target;
   if(t.dataset && t.dataset.key && t.dataset.id && t.dataset.field){
-    const arr = t.dataset.key === 'assets' ? data.assets : currentMonth()[t.dataset.key];
+    const k = t.dataset.key;
+    const arr = k === 'assets' ? data.assets : k === 'debts' ? data.debts : k === 'goals' ? data.goals : k === 'bills' ? data.bills : currentMonth()[k];
     const row = arr.find(r => r.id === t.dataset.id);
     if(!row) return;
-    const numericFields = ['amount','limit','gross','deductions'];
+    const numericFields = ['amount','limit','gross','deductions','balance','rate','minPayment','target','saved','day','month'];
     row[t.dataset.field] = numericFields.includes(t.dataset.field) ? (t.value===''?0:Number(t.value)) : t.value;
+    if(k === 'debts'){ renderNetWorth(); renderDebtSummary(); if(t.dataset.field === 'cur') renderFxRows(); scheduleSave(); return; }
+    if(k === 'goals'){ updateGoalProgress(); scheduleSave(); return; }
+    if(k === 'bills'){
+      if(t.dataset.field === 'freq') renderBillsPanel(); else { renderBillsSummary(); renderBillsDue(); }
+      scheduleSave(); return;
+    }
+    if(k === 'assets'){ renderNetWorth(); if(t.dataset.field === 'cur') renderFxRows(); }
     renderTotals(); renderOverview();
     if(t.dataset.key === 'payslips') renderPayslipsPanel();
     scheduleSave();
@@ -1218,7 +2053,10 @@ document.addEventListener('input', (e) => {
 document.addEventListener('click', (e) => {
   const addKey = e.target.closest('[data-add]')?.dataset.add;
   if(addKey){
-    if(addKey === 'assets'){ const newRow = {id:uid(), label:'New item', amount:0, cur:'£'}; data.assets.push(newRow); renderAssetsPanel(); }
+    if(addKey === 'bills'){ data.bills.push({id:uid(), label:'', amount:0, day:1, freq:'monthly', month:1}); renderBillsPanel(); }
+    else if(addKey === 'debts'){ data.debts.push({id:uid(), label:'', balance:0, rate:0, minPayment:0, cur:data.primaryCurrency||'£'}); renderAssetsPanel(); }
+    else if(addKey === 'goals'){ data.goals.push({id:uid(), label:'', target:0, saved:0, date:''}); renderAssetsPanel(); }
+    else if(addKey === 'assets'){ const newRow = {id:uid(), label:'New item', amount:0, cur:data.primaryCurrency||'£'}; data.assets.push(newRow); renderAssetsPanel(); }
     else if(addKey === 'expenses'){ const newRow = {id:uid(), label:'New item', amount:0, limit:0}; currentMonth().expenses.push(newRow); renderExpenseTable(); renderTotals(); renderOverview(); }
     else if(addKey === 'payslips'){ const newRow = {id:uid(), label:'', gross:0, deductions:0}; currentMonth().payslips.push(newRow); renderPayslipsPanel(); }
     else { const newRow = {id:uid(), label:'New item', amount:0}; currentMonth()[addKey].push(newRow); renderSimpleTable(addKey, addKey+'Body'); renderTotals(); renderOverview(); }
@@ -1228,7 +2066,10 @@ document.addEventListener('click', (e) => {
   const delBtn = e.target.closest('[data-del]');
   if(delBtn){
     const key = delBtn.dataset.del, id = delBtn.dataset.id;
-    if(key === 'assets'){ data.assets = data.assets.filter(r=>r.id!==id); renderAssetsPanel(); }
+    if(key === 'bills'){ data.bills = data.bills.filter(r=>r.id!==id); renderBillsPanel(); }
+    else if(key === 'debts'){ data.debts = data.debts.filter(r=>r.id!==id); renderAssetsPanel(); }
+    else if(key === 'goals'){ data.goals = data.goals.filter(r=>r.id!==id); renderAssetsPanel(); }
+    else if(key === 'assets'){ data.assets = data.assets.filter(r=>r.id!==id); renderAssetsPanel(); }
     else if(key === 'expenses'){ currentMonth().expenses = currentMonth().expenses.filter(r=>r.id!==id); renderExpenseTable(); renderTotals(); renderOverview(); }
     else if(key === 'payslips'){ currentMonth().payslips = currentMonth().payslips.filter(r=>r.id!==id); renderPayslipsPanel(); }
     else { currentMonth()[key] = currentMonth()[key].filter(r=>r.id!==id); renderSimpleTable(key, key+'Body'); renderTotals(); renderOverview(); }
@@ -1241,15 +2082,16 @@ document.addEventListener('click', (e) => {
 // The Web Share API (which opens the native share sheet, with "Save to Files") is
 // the reliable path there. We try Share first, and only fall back to a direct
 // download link on platforms where that isn't supported (mostly desktop browsers).
-async function saveFile(blob, filename, mimeType){
+async function saveFile(blob, filename, mimeType, opts){
   const file = new File([blob], filename, {type:mimeType});
   if(navigator.canShare && navigator.canShare({files:[file]})){
     try{
       await navigator.share({files:[file], title:filename});
       exportStatus(`Shared "${filename}" — choose "Save to Files" to keep a copy.`);
-      return;
+      return true;
     }catch(err){
-      if(err.name === 'AbortError') return; // user cancelled the share sheet, no need for a fallback
+      if(err.name === 'AbortError') return false; // user cancelled the share sheet, no need for a fallback
+      if(err.name === 'NotAllowedError' && opts && opts.allowRetry) return 'blocked';
       // otherwise fall through to direct download below
     }
   }
@@ -1258,6 +2100,7 @@ async function saveFile(blob, filename, mimeType){
   a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
   URL.revokeObjectURL(url);
   exportStatus(`Downloaded "${filename}".`);
+  return true;
 }
 function exportStatus(msg){
   const el = document.getElementById('saveNote');
@@ -1266,16 +2109,21 @@ function exportStatus(msg){
   setTimeout(()=>{ el.classList.remove('show'); el.textContent = 'saved'; }, 2600);
 }
 
-document.getElementById('exportBtn').addEventListener('click', () => {
-  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
-  saveFile(blob, 'ledger-backup-' + new Date().toISOString().slice(0,10) + '.json', 'application/json');
-});
+document.getElementById('exportBtn').addEventListener('click', doBackup);
 document.getElementById('importInput').addEventListener('change', (e) => {
   const file = e.target.files[0]; if(!file) return;
   const reader = new FileReader();
-  reader.onload = () => {
+  reader.onload = async () => {
     try{
-      const imported = JSON.parse(reader.result);
+      let imported = JSON.parse(reader.result);
+      if(imported && imported.format === 'ledger-encrypted-backup'){
+        const pw = await askPassword({ title:'Password-protected backup', hint:'Enter the password you chose when you saved this backup.', okLabel:'Restore' });
+        if(pw === null) return;
+        try{
+          const key = await deriveKey(pw, imported.salt);
+          imported = await decryptJSON(key, imported.iv, imported.ct);
+        }catch(err){ alert("That password didn't unlock the backup."); return; }
+      }
       if(imported.months){
         data = normalizeData(imported);
       } else {
@@ -1299,6 +2147,15 @@ document.getElementById('csvBtn').addEventListener('click', () => {
   rows.push([]);
   rows.push(['Account','Currency','Amount']);
   data.assets.forEach(r => rows.push([r.label, r.cur, r.amount]));
+  rows.push([]);
+  rows.push(['Debt','Currency','Balance','APR %','Minimum per month']);
+  data.debts.forEach(r => rows.push([r.label, r.cur, r.balance, r.rate, r.minPayment]));
+  rows.push([]);
+  rows.push(['Bill','Amount','Due day','Repeats']);
+  data.bills.forEach(r => rows.push([r.label, r.amount, r.day, r.freq]));
+  rows.push([]);
+  rows.push(['Goal','Target','Saved','Target date']);
+  data.goals.forEach(r => rows.push([r.label, r.target, r.saved, r.date]));
   const csv = rows.map(r => r.map(v => `"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob = new Blob([csv], {type:'text/csv'});
   saveFile(blob, 'ledger-export-' + new Date().toISOString().slice(0,10) + '.csv', 'text/csv');
@@ -1355,6 +2212,7 @@ function normalizeDesc(s){
 }
 
 let pendingImportRows = [];
+function txKey(r, dir, total){ return [r.date, normalizeDesc(r.description), total.toFixed(2), dir].join('|'); }
 
 function suggestCategory(desc, direction, month){
   const norm = normalizeDesc(desc);
@@ -1450,6 +2308,7 @@ function renderImportList(){
   const includeExchanges = document.getElementById('includeExchanges').checked;
   const list = document.getElementById('importList');
   const rows = pendingImportRows.filter(r => includeExchanges || !/exchange/i.test(r.type));
+  let dupCount = 0;
 
   if(rows.length === 0){
     list.innerHTML = '<div class="empty">no transactions to show — try including exchanges above, or check the file.</div>';
@@ -1457,12 +2316,14 @@ function renderImportList(){
     list.innerHTML = rows.map((r, i) => {
       const direction = r.amount >= 0 ? 'in' : 'out';
       const total = direction === 'out' ? Math.abs(r.amount) + Math.abs(r.fee||0) : Math.abs(r.amount);
-      const suggested = suggestCategory(r.description, direction, month);
+      const dup = data.transactions.some(t => t.key === txKey(r, direction, total));
+      if(dup) dupCount++;
+      const suggested = dup ? 'skip' : suggestCategory(r.description, direction, month);
       return `
         <div class="import-row">
           <div class="meta">
             <div class="desc">${escapeHtml(r.description || r.type)}</div>
-            <div class="date">${r.date}</div>
+            <div class="date">${r.date}${dup ? ' · <b style="color:#C0432E;">already imported, skipped</b>' : ''}</div>
           </div>
           <div class="amt ${direction}">${direction==='in'?'+':'−'}${fmt(total)}</div>
           <select data-import-idx="${i}">${categoryOptionsHtml(month, suggested)}</select>
@@ -1470,14 +2331,15 @@ function renderImportList(){
       `;
     }).join('');
   }
-  updateImportSummary(rows);
+  updateImportSummary(rows, dupCount);
   list.dataset.rowCount = rows.length;
   list._rows = rows;
 }
 document.getElementById('includeExchanges').addEventListener('change', renderImportList);
 
-function updateImportSummary(rows){
-  document.getElementById('importSummary').textContent = `${rows.length} transaction${rows.length===1?'':'s'} found`;
+function updateImportSummary(rows, dupCount){
+  document.getElementById('importSummary').textContent = `${rows.length} transaction${rows.length===1?'':'s'} found` +
+    (dupCount ? ` · ${dupCount} already imported before` : '');
 }
 
 document.getElementById('confirmImportBtn').addEventListener('click', () => {
@@ -1497,9 +2359,12 @@ document.getElementById('confirmImportBtn').addEventListener('click', () => {
     if(!target){ target = {id:uid(), label, amount:0}; if(section==='expenses') target.limit = 0; arr.push(target); }
     target.amount = (Number(target.amount)||0) + total;
     data.categoryRules[normalizeDesc(r.description)] = sel.value;
+    data.transactions.push({ id: uid(), key: txKey(r, direction, total), date: r.date, description: r.description || r.type,
+      amount: total, dir: direction, section, category: label, monthKey: data.currentMonthKey });
     count++;
   });
 
+  if(data.transactions.length > 5000) data.transactions = data.transactions.slice(-5000);   // keep storage in check
   scheduleSave();
   render();
   document.getElementById('importBackdrop').classList.remove('show');
@@ -1693,6 +2558,7 @@ function armAutoLock(){
 
 /* ---------- settings modal ---------- */
 function syncSettingsUI(){
+  renderBackupUI();
   document.getElementById('lockToggle').checked = lockConfig.enabled;
   document.getElementById('faceIdRow').style.display = lockConfig.enabled ? 'flex' : 'none';
   document.getElementById('autoLockRow').style.display = lockConfig.enabled ? 'flex' : 'none';
@@ -1704,14 +2570,18 @@ document.getElementById('settingsBtn').addEventListener('click', async () => {
   syncSettingsUI();
   document.getElementById('appVersion').textContent = APP_VERSION;
   document.getElementById('primaryCurrencySelect').value = data.primaryCurrency || '£';
+  document.getElementById('billRemindSelect').value = String(data.billRemindDays || 3);
   const avail = await platformAuthAvailable();
   document.getElementById('faceIdRow').style.display = (lockConfig.enabled && avail) ? 'flex' : 'none';
   document.getElementById('settingsBackdrop').classList.add('show');
 });
 document.getElementById('primaryCurrencySelect').addEventListener('change', (e) => {
+  const hadRates = Object.keys(data.fxRates).length > 0;
   data.primaryCurrency = e.target.value;
+  data.fxRates = {};   // rates were relative to the old primary currency
   scheduleSave();
   render();
+  if(hadRates) exportStatus('Currency changed. Re-enter your exchange rates in the Wealth tab.');
 });
 document.getElementById('closeSettings').addEventListener('click', () => document.getElementById('settingsBackdrop').classList.remove('show'));
 document.getElementById('lockToggle').addEventListener('change', async (e) => {
@@ -1761,6 +2631,7 @@ document.getElementById('changePinBtn').addEventListener('click', () => {
   }
 })();
 
+loadBackupMeta();
 renderPinPad();
 loadLockConfig();
 if(lockConfig.enabled){
@@ -1806,12 +2677,12 @@ if('serviceWorker' in navigator){
     }, 150);
   });
   // tap outside a sheet (or press Escape) to close it
-  ['settingsBackdrop','importBackdrop'].forEach(id => {
+  ['settingsBackdrop','importBackdrop','searchBackdrop'].forEach(id => {
     const el = document.getElementById(id);
     el.addEventListener('click', (e) => { if(e.target === el) el.classList.remove('show'); });
   });
   document.addEventListener('keydown', (e) => {
-    if(e.key === 'Escape') document.querySelectorAll('.modal-backdrop.show').forEach(el => el.classList.remove('show'));
+    if(e.key === 'Escape') document.querySelectorAll('.modal-backdrop.show:not(#pwBackdrop)').forEach(el => el.classList.remove('show'));
   });
 })();
 
